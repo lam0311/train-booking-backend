@@ -48,6 +48,12 @@ class MongooseSeatInventoryRepository {
         return updateSeat;
     };
 
+    findSeatByBookingId = async ({ bookingId, userId }) => {
+        return await SeatInventory.findOne({
+            allocations: { $elemMatch: { bookingId, userId } }
+        });
+    };
+
     // lấy sơ đồ ghế của chuyến tàu
     findSeatByTrip = async (tripId) => {
         return await SeatInventory.find({ tripId })

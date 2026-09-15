@@ -6,9 +6,9 @@ const buildSegmentMask = (fromIndex, toIndex) => {
         throw new Error("chỉ số phân đoạn phải là số nguyên");
     };
 
-    if (fromIndex < 0 || fromIndex >= TOTAL_SEGMENTS || toIndex < 0 || toIndex >= TOTAL_SEGMENTS) {
-        throw new Error(`chỉ số phân đoạn phải nằm trong khoảng từ 0 đến ${TOTAL_SEGMENTS - 1}`);
-    };
+    if (fromIndex < 0 || toIndex > TOTAL_SEGMENTS || fromIndex >= toIndex) {
+        throw new Error(`Chỉ số ga không hợp lệ: fromIndex từ 0..3 và toIndex từ 1..${TOTAL_SEGMENTS}`);
+    }
 
     const segmentCount = toIndex - fromIndex;
     if (segmentCount <= 0) {
