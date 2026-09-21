@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const bookingRoutes = require("./modules/bookings/presentation/booking.routes");
+const authRoutes = require("./modules/auth/presentation/auth.routes");
 
 
 const CreateApp = () => {
@@ -13,6 +14,7 @@ const CreateApp = () => {
         res.status(200).json({ status: "ok" });
     });
 
+    app.use("/api/v1", authRoutes);
     app.use("/api/v1", bookingRoutes);
 
     // xử lý lỗi tập chung

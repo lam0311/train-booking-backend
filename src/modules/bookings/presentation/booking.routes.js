@@ -5,6 +5,7 @@ const createBookingUseCase = require("../application/create-booking.use-case");
 const getSeatsUseCase = require("../application/get-seats.use-case");
 const deleteBookingUseCase = require("../application/delete-booking.use-case");
 const BookingController = require("./booking.controller");
+const authMiddleware = require("../../../shared/presentation/auth.middleware");
 
 const router = express.Router();
 
@@ -17,6 +18,6 @@ const controller = new BookingController(createBooking, getSeats, deleteBooking)
 
 router.post("/bookings", controller.createBooking);
 router.get("/trips/:tripId/seats", controller.getSeats);
-router.delete("/bookings/:bookingId", controller.deleteBooking);
+router.delete("/bookings/:bookingId", authMiddleware, controller.deleteBooking);
 
 module.exports = router;

@@ -1,5 +1,5 @@
 const crypto = require("node:crypto");
-const AppError = require("../domain/app-error");
+const AppError = require("../../../shared/domain/app-error");
 const { buildSegmentMask } = require("../domain/segment-mask");
 
 class CreateBookingUsecase {

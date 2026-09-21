@@ -1,5 +1,5 @@
 const { buildClearMask } = require("../domain/segment-mask");
-const AppError = require("../domain/app-error");
+const AppError = require("../../../shared/domain/app-error");
 
 class DeleteBookingUseCase {
     constructor(seatInventoryRepository) {
