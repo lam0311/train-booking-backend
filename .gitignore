@@ -31,6 +31,7 @@ pids/
 coverage/
 *.lcov
 .nyc_output/
+load-test.js
 
 # Build & distribution
 dist/

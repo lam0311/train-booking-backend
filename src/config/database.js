@@ -7,7 +7,10 @@ const connectDatabase = async (uri) => {
 
         await mongoose.connect(uri, {
             maxPoolSize: 30,
-            serverSelectionTimeoutMS: 5000,
+            serverSelectionTimeoutMS: 30000,
+            connectTimeoutMS: 30000,
+            tls: true,
+            tlsAllowInvalidCertificates: true,
         });
         console.log("Database connected successfully");
     } catch (error) {

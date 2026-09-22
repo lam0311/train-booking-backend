@@ -1,8 +1,7 @@
 const jwt = require("jsonwebtoken");
 
 const ACCESS_SECRET = process.env.JWT_SECRET;
-const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
-
+const REFRESH_SECRET = process.env.JWT_SECRET;
 
 const signAccessToken = (payload) => {
     return jwt.sign(payload, ACCESS_SECRET, {
@@ -15,8 +14,6 @@ const signRefreshToken = (payload) => {
         expiresIn: process.env.JWT_REFRESH_EXPIRES || "7d"
     });
 };
-
-
 
 const verifyAccessToken = (token) => {
     return jwt.verify(token, ACCESS_SECRET);
