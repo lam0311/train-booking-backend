@@ -6,6 +6,8 @@ const getSeatsUseCase = require("../application/get-seats.use-case");
 const deleteBookingUseCase = require("../application/delete-booking.use-case");
 const BookingController = require("./booking.controller");
 const authMiddleware = require("../../../shared/presentation/auth.middleware");
+const bookingSchema = require("./booking.schema");
+const validateBody = require("../../../shared/presentation/validate-body");
 
 const router = express.Router();
 
@@ -16,7 +18,7 @@ const deleteBooking = new deleteBookingUseCase(repository);
 
 const controller = new BookingController(createBooking, getSeats, deleteBooking);
 
-router.post("/bookings", controller.createBooking);
+router.post("/bookings", authMiddleware, validateBody(bookingSchema), controller.createBooking);
 router.get("/trips/:tripId/seats", controller.getSeats);
 router.delete("/bookings/:bookingId", authMiddleware, controller.deleteBooking);
 
