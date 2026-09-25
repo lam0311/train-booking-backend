@@ -14,7 +14,7 @@ const CreateApp = () => {
     const globalLimiter = rateLimit({
         windowMs: 60 * 1000,
         // Moi IP duoc dem lai tu dau sau moi 1 phut,
-        max: 300,
+        max: 2000,
         // Toi da 300 request trong 1 phut moi IP
         standardHeaders: true,
         // Gui them header nay ve cho client biet con duoc bao nhieu request
