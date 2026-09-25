@@ -6,11 +6,22 @@ const connectDatabase = async (uri) => {
         }
 
         await mongoose.connect(uri, {
-            maxPoolSize: 30,
-            serverSelectionTimeoutMS: 30000,
-            connectTimeoutMS: 30000,
-            tls: true,
-            tlsAllowInvalidCertificates: true,
+            maxPoolSize: Number(process.env.DB_MAX_POOL || 20),
+            minPoolSize: Number(process.env.DB_MIN_POOL || 2),
+
+            // Đóng connection nhàn rỗi lâu
+            maxIdleTimeMS: 30_000,
+            // Giới hạn thời gian chờ connection
+            waitQueueTimeoutMS: 2_000,
+
+            // Giới hạn thời gian tìm MongoDB
+            serverSelectionTimeoutMS: 5_000,
+            // Giới hạn thời gian mở connection
+            connectTimeoutMS: 5_000,
+
+            // Retry một số thao tác ghi phù hợp
+            retryWrites: true,
+            tls: true
         });
         console.log("Database connected successfully");
     } catch (error) {

@@ -43,6 +43,11 @@ const seatInventorySchema = new Schema({
 
 seatInventorySchema.index({ tripId: 1, seatNumber: 1 }, { unique: true });
 
+seatInventorySchema.index({
+    "allocations.bookingId": 1,
+    "allocations.userId": 1
+});
+
 const SeatInventory = mongoose.model("SeatInventory", seatInventorySchema, "seat_inventories");
 
 module.exports = SeatInventory;
