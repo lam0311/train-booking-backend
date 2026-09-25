@@ -10,6 +10,8 @@ const rateLimit = require("express-rate-limit"); // Giới hạn request cho m�
 
 const CreateApp = () => {
     const app = express();
+    app.set("trust proxy", 1);
+
 
     const globalLimiter = rateLimit({
         windowMs: 60 * 1000,
