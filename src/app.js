@@ -16,7 +16,9 @@ const CreateApp = () => {
     const globalLimiter = rateLimit({
         windowMs: 60 * 1000,
         // Moi IP duoc dem lai tu dau sau moi 1 phut,
-        max: 2000,
+        max: Number(
+            process.env.GLOBAL_RATE_LIMIT_MAX || 2000
+        ),
         // Toi da 300 request trong 1 phut moi IP
         standardHeaders: true,
         // Gui them header nay ve cho client biet con duoc bao nhieu request
@@ -26,7 +28,9 @@ const CreateApp = () => {
     app.use(cors());
     app.use(express.json({ limit: "100kb" }));
     app.use(helmet());
-    app.use(compression());
+    app.use(compression({
+        threshold: 4 * 1024
+    }));
     app.use(globalLimiter);
 
     app.get("/health/live", (req, res) => {

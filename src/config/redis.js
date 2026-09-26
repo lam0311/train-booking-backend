@@ -15,7 +15,7 @@ const getRedisClient = () => {
     try {
         redisClient = new Redis(redisUrl, {
             maxRetriesPerRequest: 1,
-            connectTimeout: 5000,
+            connectTimeout: 1000,
             lazyConnect: true
         });
 

@@ -1,5 +1,6 @@
 const SeatInventory = require("./seat-inventory.model");
 const getRedisClient = require("../../../config/redis");
+const LocalCache = require("../../../shared/infrastructure/local-cache");
 
 // sử lý các thao tác nguyên tử
 class MongooseSeatInventoryRepository {
@@ -9,8 +10,12 @@ class MongooseSeatInventoryRepository {
         try {
             const redis = getRedisClient();
 
+            const cacheKey = `seats:${tripId}`;
+
+            LocalCache.delete(cacheKey);
+
             if (redis) {
-                await redis.del(`seats:${tripId}`);
+                await redis.del(cacheKey);
             }
 
         } catch (err) {
@@ -89,6 +94,13 @@ class MongooseSeatInventoryRepository {
     // lấy sơ đồ ghế của chuyến tàu
     findSeatByTrip = async (tripId) => {
         const cacheKey = `seats:${tripId}`;
+
+        const localSeats = LocalCache.get(cacheKey);
+
+        if (localSeats) {
+            return localSeats;
+        }
+
         const redis = getRedisClient();
 
         if (redis) {
@@ -105,6 +117,12 @@ class MongooseSeatInventoryRepository {
         const seats = await SeatInventory.find({ tripId })
             .select("seatNumber occupiedMask")
             .lean();
+
+        LocalCache.set(
+            cacheKey,
+            seats,
+            2_000
+        );
 
         if (redis && seats.length > 0) {
             try {

@@ -59,12 +59,12 @@ Có nén:    JSON 50KB → nén còn ~8KB → gửi 8KB
 ### express-rate-limit
 - **Package**: `express-rate-limit`
 - **Mục đích**: Giới hạn số request mỗi IP trong một khoảng thời gian, chống spam và brute force
-- **Config hiện tại**: 2000 request / 1 phút / IP (nâng lên để test tải không bị chặn nhầm)
+- **Config hiện tại**: 300 request / 1 phút / IP
 
 ```js
 const globalLimiter = rateLimit({
     windowMs: 60 * 1000,   // 1 phut
-    max: 2000,             // toi da 2000 request
+    max: 300,              // toi da 300 request
     standardHeaders: true,
     legacyHeaders: false
 });
@@ -72,59 +72,6 @@ app.use(globalLimiter);
 ```
 
 Khi vượt giới hạn → trả về `429 Too Many Requests`.
-
----
-
-## Architecture & Scalability
-
-### Node.js Cluster
-- **Module**: `node:cluster`, `node:os` (Built-in Node.js module, không cần cài thêm thư viện ngoài).
-- **Mục đích**: Giải quyết điểm nghẽn Single-Thread của Node.js, tận dụng triệt để kiến trúc CPU đa nhân của máy chủ để nhân rộng khả năng xử lý song song.
-- **Entry point**: `src/cluster.js` (kích hoạt qua `npm start`).
-
-#### Cơ chế hoạt động:
-1. **Primary Process (Master)**:
-   - Đóng vai trò điều phối, gọi `os.cpus().length` để xác định số lượng CPU cores khả dụng trên hệ thống.
-   - Sử dụng `cluster.fork()` để nhân bản tương ứng bấy nhiêu tiến trình con (**Worker Processes**).
-   - Lắng nghe sự kiện `cluster.on('exit')`: Nếu một worker bất kỳ gặp sự cố và crash, Primary sẽ tự động fork ngay một worker mới để thế chỗ (**Self-healing / Zero downtime**).
-2. **Worker Processes (Con)**:
-   - Mỗi worker lắng nghe cùng một cổng mạng (Port) và chia sẻ socket server mà không xung đột port nhờ cơ chế phân bổ kết nối Round-Robin của Master/OS.
-   - Chạy độc lập mã nguồn ứng dụng `server.js`.
-
-#### Code triển khai (`src/cluster.js`):
-```js
-const cluster = require("node:cluster");
-const os = require("node:os");
-
-if (cluster.isPrimary) {
-    const numCPUs = os.cpus().length;
-    console.log(`Primary ${process.pid} is running. Forking ${numCPUs} workers...`);
-
-    for (let i = 0; i < numCPUs; i++) {
-        cluster.fork();
-    }
-
-    cluster.on("exit", (worker, code, signal) => {
-        console.log(`Worker ${worker.process.pid} died. Forking replacement...`);
-        cluster.fork();
-    });
-} else {
-    require("./server.js");
-}
-```
-
-#### Kết quả đánh giá hiệu năng thực tế (Kaggle Benchmark):
-- **Trước khi Cluster** (Single Process):
-  - Tải 100 users: ~55 req/s
-  - Tải 300 users: ~69 req/s (Throughput chạm trần)
-- **Sau khi Cluster** (Multi-worker Process):
-  - Tải 100 users: **73 req/s** (+33%)
-  - Tải 300 users: **109 req/s** (+58%)
-  - Tải 1,000 users: **225 req/s** (0.0% error)
-  - Tải 2,000 users: **244 req/s** (0.0% error, Throughput đỉnh tăng gấp **3.5 lần**)
-
-#### Lưu ý khi sử dụng:
-- Các worker hoạt động trên các vùng nhớ (Memory Space) riêng biệt, không chia sẻ biến toàn cục. Do đó, các tác vụ như Session, In-memory Cache, hoặc Rate-limiter bộ nhớ cục bộ cần chú ý tính phân tán nếu scale lớn hơn.
 
 ---
 
@@ -161,5 +108,6 @@ if (cluster.isPrimary) {
 
 | Công cụ | Mục đích | Trạng thái |
 |---|---|---|
-| Node.js Cluster | Dùng nhiều CPU core, tăng throughput | Đã làm ✅ |
-| In-memory cache | Cache GET seats, giảm query DB | Chưa làm |
+| Node.js Cluster | Dùng nhiều CPU core, tăng throughput | Đã thử nghiệm (Không phù hợp Render Free) |
+| In-memory Cache & Redis (L1/L2) | Cache GET seats, giảm tối đa query DB | Đã làm ✅ |
+
