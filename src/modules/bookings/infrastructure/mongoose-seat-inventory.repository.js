@@ -1,6 +1,7 @@
 const SeatInventory = require("./seat-inventory.model");
 const getRedisClient = require("../../../config/redis");
 const LocalCache = require("../../../shared/infrastructure/local-cache");
+const inFlightLoads = new Map();
 
 // sử lý các thao tác nguyên tử
 class MongooseSeatInventoryRepository {
@@ -14,7 +15,7 @@ class MongooseSeatInventoryRepository {
 
             LocalCache.delete(cacheKey);
 
-            if (redis) {
+            if (redis && redis.status === "ready") {
                 await redis.del(cacheKey);
             }
 
@@ -25,6 +26,57 @@ class MongooseSeatInventoryRepository {
 
 
 
+    loadSeatsFromLowerCache = async (tripId, cacheKey) => {
+        const redis = getRedisClient();
+        if (redis && redis.status === "ready") {
+            try {
+                const cached = await redis.get(cacheKey);
+
+                if (cached) {
+                    const seats = JSON.parse(cached);
+
+                    LocalCache.set(
+                        cacheKey,
+                        seats,
+                        2_000
+                    );
+
+                    return seats;
+                }
+            } catch (err) {
+                console.warn("Lỗi đọc cache Redis:", err.message);
+            }
+        }
+
+        const seats = await SeatInventory
+            .find({ tripId })
+            .select("seatNumber occupiedMask")
+            .lean();
+
+        LocalCache.set(
+            cacheKey,
+            seats,
+            2_000
+        );
+
+
+        if (redis && redis.status === "ready" && seats.length > 0) {
+            try {
+                await redis.set(
+                    cacheKey,
+                    JSON.stringify(seats),
+                    "EX",
+                    60
+                );
+            } catch (error) {
+                console.warn(
+                    "Lỗi ghi Redis:",
+                    error.message
+                );
+            }
+        }
+        return seats;
+    };
 
     /**
      * Kiểm tra: Chỉ cập nhật nếu các bit của chặng yêu cầu ĐANG TRỐNG
@@ -101,38 +153,28 @@ class MongooseSeatInventoryRepository {
             return localSeats;
         }
 
-        const redis = getRedisClient();
+        // Nếu đã có request đang tải key này,
+        // dùng chung Promise với request đó.
+        const existingLoad = inFlightLoads.get(cacheKey);
 
-        if (redis) {
-            try {
-                const cached = await redis.get(cacheKey);
-                if (cached) {
-                    return JSON.parse(cached);
-                }
-            } catch (err) {
-                console.warn("Lỗi đọc cache Redis:", err.message);
-            }
+        if (existingLoad) {
+            return existingLoad;
         }
 
-        const seats = await SeatInventory.find({ tripId })
-            .select("seatNumber occupiedMask")
-            .lean();
+        const loadPromise = this.loadSeatsFromLowerCache(tripId, cacheKey);
 
-        LocalCache.set(
+        inFlightLoads.set(
             cacheKey,
-            seats,
-            2_000
+            loadPromise
         );
 
-        if (redis && seats.length > 0) {
-            try {
-                await redis.set(cacheKey, JSON.stringify(seats), "EX", 60);
-            } catch (err) {
-                console.warn("Lỗi ghi cache Redis:", err.message);
-            }
-        }
 
-        return seats;
+        try {
+            return await loadPromise;
+        } finally {
+            // Sau khi hoàn thành hoặc gặp lỗi, thì xóa promise ra khỏi map
+            inFlightLoads.delete(cacheKey);
+        }
     };
 }
 

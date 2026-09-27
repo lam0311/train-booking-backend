@@ -35,3 +35,4 @@ class LocalCache {
 }
 
 module.exports = new LocalCache;
+
