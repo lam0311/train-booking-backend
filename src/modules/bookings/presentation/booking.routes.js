@@ -4,6 +4,7 @@ const MongooseSeatInventoryResponsitory = require("../infrastructure/mongoose-se
 const createBookingUseCase = require("../application/create-booking.use-case");
 const getSeatsUseCase = require("../application/get-seats.use-case");
 const deleteBookingUseCase = require("../application/delete-booking.use-case");
+const getBookingUseCase = require("../application/get-booking.use-case");
 const BookingController = require("./booking.controller");
 const authMiddleware = require("../../../shared/presentation/auth.middleware");
 const bookingSchema = require("./booking.schema");
@@ -17,11 +18,13 @@ const repository = new MongooseSeatInventoryResponsitory();
 const createBooking = new createBookingUseCase(repository);
 const getSeats = new getSeatsUseCase(repository);
 const deleteBooking = new deleteBookingUseCase(repository);
+const getBooking = new getBookingUseCase(repository);
 
-const controller = new BookingController(createBooking, getSeats, deleteBooking);
+const controller = new BookingController(createBooking, getSeats, deleteBooking, getBooking);
 
 router.post("/bookings", authMiddleware, validateBody(bookingSchema), controller.createBooking);
 router.get("/trips/:tripId/seats", validateQuery(getSeatsSchema), controller.getSeats);
+router.get("/bookings/:bookingId", authMiddleware, controller.getBooking);
 router.delete("/bookings/:bookingId", authMiddleware, controller.deleteBooking);
 
 module.exports = router;

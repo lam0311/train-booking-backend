@@ -1,8 +1,11 @@
 class BookingController {
-    constructor(createBookingUseCase, getSeatsUseCase, releaseOwnedUseCase) {
+    constructor(createBookingUseCase, getSeatsUseCase,
+        releaseOwnedUseCase, getBookingUseCase) {
         this.createBookingUseCase = createBookingUseCase;
         this.getSeatsUseCase = getSeatsUseCase;
         this.releaseOwnedUseCase = releaseOwnedUseCase;
+        this.getBookingUseCase = getBookingUseCase;
+
     }
 
     // API đặt vé 
@@ -56,6 +59,21 @@ class BookingController {
 
             return res.status(200).json({ data: result });
 
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getBooking = async (req, res, next) => {
+        try {
+            const { bookingId } = req.params;
+            const userId = req.auth?.userId;
+
+            const result = await this.getBookingUseCase.execute({
+                bookingId, userId
+            });
+
+            return res.status(200).json({ data: result });
         } catch (error) {
             next(error);
         }
