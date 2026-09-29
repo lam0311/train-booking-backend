@@ -104,10 +104,9 @@ Khi vượt giới hạn → trả về `429 Too Many Requests`.
 
 ---
 
-## Sẽ tích hợp thêm
-
-| Công cụ | Mục đích | Trạng thái |
-|---|---|---|
-| Node.js Cluster | Dùng nhiều CPU core, tăng throughput | Đã thử nghiệm (Không phù hợp Render Free) |
-| In-memory Cache & Redis (L1/L2) | Cache GET seats, giảm tối đa query DB | Đã làm ✅ |
-
+## tool SAST SEMGREP:
+- Cài đặt: Mở terminal chạy câu lệnh: pip install semgrep
+- Ta lấy các rules của top 10 owasp trên link: https://semgrep.dev/c/p/owasp-top-ten
+- Đây là tool phân tích mã nguồn tĩnh và đánh giá độ bảo mật của tool ta
+- File owasp-top-ten.yaml có chứa tới 560 rules cho rất nhiều ngôn ngữ. SEMGREP sẽ tự động lựa chọn rules dựa trên ngôn ngữ của mã nguồn 
+và loại bỏ cả những rules dành cho frontend, chỉ sử dụng rules cho backend thuần.
