@@ -33,7 +33,7 @@ class BookingController {
             const { tripId } = req.params;
 
             const { from, to } = req.query;
-
+            
             const result = await this.getSeatsUseCase.execute({
                 tripId,
                 fromIndex: Number(from),
@@ -41,6 +41,7 @@ class BookingController {
             });
 
             return res.status(200).json({ data: result });
+            
         } catch (error) {
             next(error);
         }
