@@ -1,123 +1,754 @@
 openapi: 3.0.0
 info:
-  title: Hệ thống Đặt Vé Tàu Hỏa - API Documentation
-  description: >-
-    Tài liệu API cho hệ thống đặt vé tàu hỏa, hỗ trợ đăng ký/đăng nhập,
-    kiểm tra số lượng ghế trống trên các chuyến tàu, đặt vé và hủy vé.
+  title: API Hệ thống Đặt Vé Tàu Hỏa
   version: 1.0.0
+  description: >-
+    API backend cho đăng ký và xác thực người dùng, tra cứu ghế, đặt vé,
+    xem chi tiết vé và hủy vé. Swagger UI được phục vụ tại /api-docs.
   contact:
-    name: Developer
+    name: Nhóm phát triển Train Booking
   license:
-    name: MIT
+    name: ISC
+    url: https://opensource.org/license/isc-license-txt
 
 servers:
   - url: http://localhost:5000
     description: Server phát triển cục bộ
 
-# Security: áp dụng toàn cục (Swagger UI sẽ hiển thị nút Authorize)
-security:
-  - BearerAuth: []
-
-externalDocs:
-  description: OpenAPI JSON dành cho OWASP ZAP scan
-  url: ./openapi.json
-
 tags:
-  - name: Health
-    description: Kiểm tra trạng thái sức khỏe server
-  - name: Authentication
-    description: Đăng ký, đăng nhập, làm mới và đăng xuất tài khoản
-  - name: Seats
-    description: Tra cứu danh sách ghế và tình trạng chỗ trống theo chuyến
-  - name: Bookings
-    description: Đặt vé mới, xem chi tiết vé và hủy vé
+  - name: Sức khỏe hệ thống
+    description: Kiểm tra server có đang hoạt động.
+  - name: Xác thực
+    description: Đăng ký, đăng nhập, làm mới access token và đăng xuất.
+  - name: Ghế
+    description: Tra cứu tình trạng ghế theo chuyến tàu và chặng đường.
+  - name: Vé
+    description: Đặt vé, xem chi tiết vé và hủy vé.
+
+paths:
+  /health/live:
+    get:
+      operationId: getHealthStatus
+      tags:
+        - Sức khỏe hệ thống
+      summary: Kiểm tra trạng thái hoạt động của server
+      description: Endpoint công khai, không yêu cầu xác thực.
+      security: []
+      responses:
+        "200":
+          description: Server đang hoạt động.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+              example:
+                status: ok
+        "429":
+          $ref: "#/components/responses/GlobalRateLimited"
+
+  /api/v1/auth/register:
+    post:
+      operationId: registerUser
+      tags:
+        - Xác thực
+      summary: Đăng ký tài khoản mới
+      description: >-
+        Tạo tài khoản mới. Email được Mongoose trim và chuyển thành chữ thường.
+        Endpoint bị giới hạn 20 request mỗi phút trên mỗi IP.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+            example:
+              email: nguyenvana@gmail.com
+              password: SecurePass123!
+      responses:
+        "201":
+          description: Đăng ký thành công.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterResponse"
+              example:
+                data:
+                  userId: "66f57871b69f64a132fae201"
+                  email: nguyenvana@gmail.com
+        "409":
+          description: Email đã được sử dụng.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: EMAIL_TAKEN
+                  message: Email này đã được sử dụng
+        "429":
+          $ref: "#/components/responses/AuthRateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/auth/login:
+    post:
+      operationId: loginUser
+      tags:
+        - Xác thực
+      summary: Đăng nhập và nhận access token, refresh token
+      description: >-
+        Xác thực bằng email và mật khẩu. Access token mặc định sống 15 phút,
+        refresh token mặc định sống 7 ngày. Endpoint bị giới hạn 20 request mỗi phút trên mỗi IP.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+            example:
+              email: nguyenvana@gmail.com
+              password: SecurePass123!
+      responses:
+        "200":
+          description: Đăng nhập thành công.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+              example:
+                data:
+                  accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example-access-token"
+                  refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example-refresh-token"
+        "401":
+          description: Email hoặc mật khẩu không đúng.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: INVALID
+                  message: Email hoặc mật khẩu không đúng!
+        "429":
+          $ref: "#/components/responses/AuthRateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/auth/refresh:
+    post:
+      operationId: refreshAccessToken
+      tags:
+        - Xác thực
+      summary: Làm mới access token
+      description: >-
+        Dùng refresh token trong body để tạo access token mới. Endpoint này không yêu cầu
+        header Authorization, nhưng bị giới hạn 20 request mỗi phút trên mỗi IP.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequest"
+            example:
+              refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example-refresh-token"
+      responses:
+        "200":
+          description: Làm mới access token thành công.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RefreshResponse"
+              example:
+                data:
+                  accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.new-access-token"
+        "401":
+          description: Không có refresh token, token không hợp lệ, hết hạn hoặc không khớp phiên hiện tại.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missingRefreshToken:
+                  value:
+                    error:
+                      code: NO_REFRESH_TOKEN
+                      message: Không có refresh token!
+                invalidRefreshToken:
+                  value:
+                    error:
+                      code: INVALID_REFRESH_TOKEN
+                      message: Refresh token không hợp lệ hoặc đã hết hạn!
+                tokenMismatch:
+                  value:
+                    error:
+                      code: REFRESH_TOKEN_MISMATCH
+                      message: Refresh token không hợp lệ!
+        "429":
+          $ref: "#/components/responses/AuthRateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/auth/logout:
+    post:
+      operationId: logoutUser
+      tags:
+        - Xác thực
+      summary: Đăng xuất bằng refresh token
+      description: >-
+        Xóa refresh token nếu token còn hợp lệ. Endpoint công khai; không cần Bearer access token.
+        Refresh token không hợp lệ vẫn nhận response 200 để việc đăng xuất có tính idempotent.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequest"
+            example:
+              refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example-refresh-token"
+      responses:
+        "200":
+          description: Đăng xuất thành công hoặc refresh token đã không còn hợp lệ.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogoutResponse"
+              examples:
+                successfulLogout:
+                  value:
+                    data:
+                      message: Đã đăng xuất thành công!
+                alreadyInvalidToken:
+                  value:
+                    data:
+                      message: Đã đăng xuất!
+        "400":
+          description: Request không có refresh token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: NO_REFRESH_TOKEN
+                  message: Không có refresh token!
+        "429":
+          $ref: "#/components/responses/GlobalRateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/trips/{tripId}/seats:
+    get:
+      operationId: getTripSeats
+      tags:
+        - Ghế
+      summary: Tra cứu tình trạng ghế theo chặng
+      description: >-
+        Trả về trạng thái có thể đặt của mọi ghế trong chuyến tàu tại chặng được yêu cầu.
+        `from` và `to` là tùy chọn; khi không truyền, backend dùng mặc định from=0 và to=4.
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/TripId"
+        - name: from
+          in: query
+          required: false
+          description: Chỉ số ga xuất phát, từ 0 đến 3. Mặc định là 0.
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 3
+            default: 0
+          example: 0
+        - name: to
+          in: query
+          required: false
+          description: Chỉ số ga đến, từ 1 đến 4 và phải lớn hơn from. Mặc định là 4.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 4
+            default: 4
+          example: 4
+      responses:
+        "200":
+          description: Tra cứu ghế thành công.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetSeatsResponse"
+              example:
+                data:
+                  tripId: SE1-2026
+                  fromIndex: 0
+                  toIndex: 4
+                  requestedMask: 15
+                  seats:
+                    - seatNumber: 1
+                      available: true
+                    - seatNumber: 2
+                      available: false
+        "400":
+          description: Query parameter không hợp lệ.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: VALIDATION_ERROR
+                  message: to phải lớn hơn from
+        "429":
+          $ref: "#/components/responses/GlobalRateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/bookings:
+    post:
+      operationId: createBooking
+      tags:
+        - Vé
+      summary: Đặt vé tàu mới
+      description: >-
+        Đặt một ghế cho chặng được chọn. Ghế chỉ được đặt thành công nếu toàn bộ đoạn đường
+        cần dùng chưa bị một allocation khác chiếm. Yêu cầu access token JWT.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBookingRequest"
+            example:
+              tripId: SE1-2026
+              seatNumber: 5
+              fromIndex: 0
+              toIndex: 2
+      responses:
+        "201":
+          description: Đặt vé thành công.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateBookingResponse"
+              example:
+                data:
+                  bookingId: "d7a3b8f2-9c1e-4f6a-b2d5-8e3c7a9f1d4b"
+                  tripId: SE1-2026
+                  seatNumber: 5
+                  fromIndex: 0
+                  toIndex: 2
+                  segmentMask: 3
+                  status: CONFIRMED
+        "400":
+          description: Request body không hợp lệ.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: VALIDATION_ERROR
+                  message: toIndex phải lớn hơn fromIndex
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: Ghế không tồn tại hoặc đã bị đặt trong chặng đường được yêu cầu.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: SEGMENT_CONFLICT
+                  message: Ghế số 5 đã có người đặt ở chặng này hoặc không tồn tại!
+        "429":
+          $ref: "#/components/responses/GlobalRateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/bookings/{bookingId}:
+    get:
+      operationId: getBookingById
+      tags:
+        - Vé
+      summary: Xem chi tiết vé theo mã vé
+      description: Chỉ chủ sở hữu của vé mới xem được thông tin chi tiết. Yêu cầu access token JWT.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/BookingId"
+      responses:
+        "200":
+          description: Truy vấn vé thành công.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingDetailResponse"
+              example:
+                data:
+                  bookingId: "d7a3b8f2-9c1e-4f6a-b2d5-8e3c7a9f1d4b"
+                  tripId: SE1-2026
+                  seatNumber: 5
+                  fromIndex: 0
+                  toIndex: 2
+                  segmentMask: 3
+                  createdAt: "2026-10-05T10:30:00.000Z"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Vé không tồn tại hoặc không thuộc về người dùng hiện tại.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: NOT_FOUND
+                  message: Vé không tồn tại hoặc bạn không có quyền xem vé này!
+        "429":
+          $ref: "#/components/responses/GlobalRateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      operationId: cancelBookingById
+      tags:
+        - Vé
+      summary: Hủy vé và giải phóng ghế
+      description: Chỉ chủ sở hữu của vé mới hủy được. Yêu cầu access token JWT.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/BookingId"
+      responses:
+        "200":
+          description: Hủy vé thành công.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteBookingResponse"
+              example:
+                data:
+                  bookingId: "d7a3b8f2-9c1e-4f6a-b2d5-8e3c7a9f1d4b"
+                  message: Đã hủy vé thành công!
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Vé không tồn tại hoặc không thuộc về người dùng hiện tại.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: NOT_FOUND
+                  message: Vé không tồn tại hoặc bạn không có quyền hủy vé này!
+        "409":
+          description: Hủy vé thất bại.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: DELETE_FAILED
+                  message: Hủy vé thất bại, vui lòng thử lại!
+        "429":
+          $ref: "#/components/responses/GlobalRateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Nhập access token JWT. Swagger UI tự gửi header Authorization theo dạng Bearer <token>.
+
   parameters:
-    AuthorizationHeader:
-      in: header
+    TripId:
+      name: tripId
+      in: path
       required: true
+      description: Định danh chuyến tàu.
       schema:
         type: string
-      description: Bearer token nhận được từ đăng nhập, ví dụ "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        minLength: 1
+        maxLength: 120
+      example: SE1-2026
+    BookingId:
+      name: bookingId
+      in: path
+      required: true
+      description: Mã vé UUID được tạo khi đặt vé thành công.
+      schema:
+        type: string
+        format: uuid
+      example: "d7a3b8f2-9c1e-4f6a-b2d5-8e3c7a9f1d4b"
 
   responses:
+    GlobalRateLimited:
+      description: >-
+        Đã vượt global rate limit của server (mặc định 2.000 request mỗi phút trên mỗi IP.
     Unauthorized:
-      description: Chưa đăng nhập hoặc token không hợp lệ
+      description: Thiếu Bearer token, token không hợp lệ hoặc token đã hết hạn.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            missingToken:
+              value:
+                error:
+                  code: UNAUTHORIZED
+                  message: Bạn cần đăng nhập để thực hiện thao tác này!
+            expiredToken:
+              value:
+                error:
+                  code: TOKEN_EXPIRED
+                  message: Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!
+            invalidToken:
+              value:
+                error:
+                  code: INVALID_TOKEN
+                  message: Token không hợp lệ!
+    AuthRateLimited:
+      description: Đã vượt giới hạn 20 request mỗi phút trên mỗi IP cho API xác thực.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
           example:
             error:
-              code: UNAUTHORIZED
-              message: "Bạn cần đăng nhập để thực hiện thao tác này!"
-    NotFound:
-      description: Không tìm thấy tài nguyên
+              code: TOO_MANY_REQUESTS
+              message: Bạn thao tác quá nhanh, vui lòng thử lại sau
+    InternalServerError:
+      description: Lỗi máy chủ nội bộ.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
-          example:
-            error:
-              code: NOT_FOUND
-              message: "Không tìm thấy tài nguyên với mã đã cho"
-    UnexpectedError:
-      description: Lỗi máy chủ nội bộ
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Error"
+            $ref: "#/components/schemas/ErrorResponse"
           example:
             error:
               code: INTERNAL_ERROR
-              message: "Lỗi máy chủ nội bộ"
+              message: Lỗi máy chủ nội bộ
 
   schemas:
-    Error:
+    HealthResponse:
       type: object
+      required:
+        - status
       properties:
-        code:
+        status:
           type: string
-          description: Mã lỗi của ứng dụng
-        message:
-          type: string
-          description: Thông báo lỗi bằng tiếng Việt
+          example: ok
+
+    ErrorDetail:
+      type: object
       required:
         - code
         - message
-      additionalProperties: false
-
-    BookingResponse:
-      type: object
       properties:
-        bookingId:
+        code:
           type: string
-          description: Mã vé định danh UUID
-        tripId:
+          description: Mã lỗi do ứng dụng cung cấp.
+        message:
           type: string
-          description: Định danh chuyến tàu
+          description: Thông báo lỗi bằng tiếng Việt.
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          $ref: "#/components/schemas/ErrorDetail"
+
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          description: Email đăng ký. Backend trim và chuyển thành chữ thường.
+          example: nguyenvana@gmail.com
+        password:
+          type: string
+          format: password
+          description: Mật khẩu dạng văn bản thuần chỉ dùng trong request.
+          example: SecurePass123!
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          example: nguyenvana@gmail.com
+        password:
+          type: string
+          format: password
+          example: SecurePass123!
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          description: Refresh token nhận được từ API đăng nhập.
+
+    UserData:
+      type: object
+      required:
+        - userId
+        - email
+      properties:
+        userId:
+          type: string
+          description: MongoDB ObjectId của người dùng.
+          example: "66f57871b69f64a132fae201"
+        email:
+          type: string
+          example: nguyenvana@gmail.com
+
+    RegisterResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: "#/components/schemas/UserData"
+
+    TokenPair:
+      type: object
+      required:
+        - accessToken
+        - refreshToken
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token.
+        refreshToken:
+          type: string
+          description: JWT refresh token.
+
+    LoginResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: "#/components/schemas/TokenPair"
+
+    RefreshResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - accessToken
+          properties:
+            accessToken:
+              type: string
+              description: JWT access token mới.
+
+    LogoutResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - message
+          properties:
+            message:
+              type: string
+
+    SeatAvailability:
+      type: object
+      required:
+        - seatNumber
+        - available
+      properties:
         seatNumber:
           type: integer
-          description: Số ghế
+          minimum: 1
+        available:
+          type: boolean
+          description: Ghế có thể đặt cho chặng được yêu cầu hay không.
+
+    GetSeatsData:
+      type: object
+      required:
+        - tripId
+        - fromIndex
+        - toIndex
+        - requestedMask
+        - seats
+      properties:
+        tripId:
+          type: string
         fromIndex:
           type: integer
-          description: Chỉ số ga xuất phát
         toIndex:
           type: integer
-          description: Chỉ số ga đến
-        segmentMask:
+        requestedMask:
           type: integer
-          description: Bitmask chặng đường
-        status:
+        seats:
+          type: array
+          items:
+            $ref: "#/components/schemas/SeatAvailability"
+
+    GetSeatsResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: "#/components/schemas/GetSeatsData"
+
+    CreateBookingRequest:
+      type: object
+      required:
+        - tripId
+        - seatNumber
+        - fromIndex
+        - toIndex
+      properties:
+        tripId:
           type: string
-          enum:
-            - CONFIRMED
-          description: Trạng thái vé
-        createdAt:
-          type: string
-          format: date-time
-          description: Thời gian tạo vé
+          minLength: 1
+          maxLength: 120
+        seatNumber:
+          type: integer
+          minimum: 1
+          maximum: 1000
+        fromIndex:
+          type: integer
+          minimum: 0
+          maximum: 3
+        toIndex:
+          type: integer
+          minimum: 1
+          maximum: 4
+      description: toIndex phải lớn hơn fromIndex.
+
+    CreateBookingData:
+      type: object
       required:
         - bookingId
         - tripId
@@ -126,592 +757,86 @@ components:
         - toIndex
         - segmentMask
         - status
-
-    SeatResponse:
-      type: object
       properties:
+        bookingId:
+          type: string
+          format: uuid
+          description: Mã vé UUID.
+        tripId:
+          type: string
         seatNumber:
           type: integer
-        available:
-          type: boolean
-          description: Ghế có thể đặt được không
+        fromIndex:
+          type: integer
+        toIndex:
+          type: integer
+        segmentMask:
+          type: integer
+        status:
+          type: string
+          enum:
+            - CONFIRMED
+
+    CreateBookingResponse:
+      type: object
       required:
-        - seatNumber
-        - available
-
-    AuthResponse:
-      type: object
-      properties:
-        accessToken:
-          type: string
-          description: Access token (có giá trị 15 phút)
-        refreshToken:
-          type: string
-          description: Refresh token (có giá trị 7 ngày)
-      required:
-        - accessToken
-        - refreshToken
-
-paths:
-  /health/live:
-    get:
-      operationId: health_live
-      tags:
-        - Health
-      summary: Kiểm tra trạng thái hoạt động của server
-      description: Endpoint công khai, không yêu cầu xác thực, dùng để kiểm tra server có đang chạy không.
-      responses:
-        "200":
-          description: Server đang hoạt động
-          content:
-            application/json:
-              schema:
-                type: object
-              example:
-                status: ok
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
-  /api/v1/auth/register:
-    post:
-      operationId: auth_register
-      tags:
-        - Authentication
-      summary: Đăng ký tài khoản mới
-      description: Tạo một tài khoản mới bằng email và mật khẩu. Email phải là định dạng hợp lệ.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - email
-                - password
-              properties:
-                email:
-                  type: string
-                  format: email
-                  description: Địa chỉ email của người dùng (duy nhất)
-                  example: "nguyenvana@gmail.com"
-                password:
-                  type: string
-                  minLength: 6
-                  description: Mật khẩu (tối thiểu 6 ký tự)
-                  example: "SecurePass123!"
-            examples:
-              register-success:
-                summary: Example request body
-                value:
-                  email: "nguyenvana@gmail.com"
-                  password: "SecurePass123!"
-      responses:
-        "201":
-          description: Đăng ký thành công
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      userId:
-                        type: string
-                      email:
-                        type: string
-                      createdAt:
-                        type: string
-                        format: date-time
-              example:
-                data:
-                  userId: "66f57871b69f64a132fae201"
-                  email: "nguyenvana@gmail.com"
-                  createdAt: "2026-10-03T10:00:00.000Z"
-        "400":
-          description: Dữ liệu nhập không hợp lệ (email sai định dạng, mật khẩu quá ngắn)
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                code: VALIDATION_ERROR
-                message: "Trường email không hợp lệ"
-        "500":
-          $ref: "#/components/responses/UnexpectedError"
-
-  /api/v1/auth/login:
-    post:
-      operationId: auth_login
-      tags:
-        - Authentication
-      summary: Đăng nhập để nhận access token và refresh token
-      description: Xác thực email và mật khẩu. Khi thành công, trả về accessToken (sống 15 phút) và refreshToken (sống 7 ngày).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - email
-                - password
-              properties:
-                email:
-                  type: string
-                  format: email
-                  description: Địa chỉ email đã đăng ký
-                  example: "nguyenvana@gmail.com"
-                password:
-                  type: string
-                  description: Mật khẩu tương ứng
-                  example: "SecurePass123!"
-            examples:
-              login-success:
-                summary: Example request body
-                value:
-                  email: "nguyenvana@gmail.com"
-                  password: "SecurePass123!"
-      responses:
-        "200":
-          description: Đăng nhập thành công, trả về access token và refresh token
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      accessToken:
-                        type: string
-                      refreshToken:
-                        type: string
-              example:
-                data:
-                  accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NmY1Nzg3MWI2OWY2NGExMzJmYWUyMDEiLCJlbWFpbCI6Im5ndXllbnZhbmFAZ21haWwuY29tIiwiaWF0IjoxNzI1MzI4ODAwLCJleHAiOjE3MjUzMzQ4MDB9.example-signature"
-                  refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh-token-example"
-        "400":
-          description: Dữ liệu nhập không hợp lệ
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                code: VALIDATION_ERROR
-                message: "Trường email không hợp lệ"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "500":
-          $ref: "#/components/responses/UnexpectedError"
-
-  /api/v1/auth/refresh:
-    post:
-      operationId: auth_refresh
-      tags:
-        - Authentication
-      summary: Làm mới access token
-      description: Dùng refresh token hợp lệ để lấy một access token mới. Không yêu cầu Bearer token trong header Authorization; refresh token được gửi trong body.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - refreshToken
-              properties:
-                refreshToken:
-                  type: string
-                  description: Refresh token nhận được từ bước đăng nhập
-                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh-token-example"
-      responses:
-        "200":
-          description: Làm mới token thành công, trả về access token mới
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      accessToken:
-                        type: string
-              example:
-                data:
-                  accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.new-access-token-example"
-        "400":
-          description: Dữ liệu nhập không hợp lệ
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                code: VALIDATION_ERROR
-                message: "Trường refreshToken không hợp lệ"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "500":
-          $ref: "#/components/responses/UnexpectedError"
-
-  /api/v1/auth/logout:
-    post:
-      operationId: auth_logout
-      tags:
-        - Authentication
-      summary: Đăng xuất khỏi tài khoản
-      description: Hủy phiên đăng nhập bằng cách xóa refresh token. Public endpoint, không yêu cầu Bearer token.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - refreshToken
-              properties:
-                refreshToken:
-                  type: string
-                  description: Refresh token cần hủy
-                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh-token-example"
-      responses:
-        "200":
-          description: Đăng xuất thành công
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      message:
-                        type: string
-              example:
-                data:
-                  message: "Đăng xuất thành công"
-        "400":
-          description: Dữ liệu nhập không hợp lệ
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                code: VALIDATION_ERROR
-                message: "Trường refreshToken không hợp lệ"
-        "500":
-          $ref: "#/components/responses/UnexpectedError"
-
-  /api/v1/trips/{tripId}/seats:
-    get:
-      operationId: get_seats
-      tags:
-        - Seats
-      summary: Tra cứu danh sách ghế và tình trạng chỗ trống của một chuyến tàu
-      description: >-
-        Trả về danh sách tất cả ghế trong chuyến, cùng với trạng thái availability
-        (có thể đặt được hay chưa) cho chặng từ ga `from` đến ga `to`.
-        Không yêu cầu xác thực.
-      parameters:
-        - name: tripId
-          in: path
-          required: true
-          description: Định danh chuyến tàu
-          schema:
-            type: string
-            example: "SE1-2026"
-        - name: from
-          in: query
-          required: true
-          description: >-
-            Chỉ số ga xuất phát (từ ga thứ `from` đến ga thứ `to`).
-            Nhận giá trị từ 0 đến 3. Mặc định là 0 khi không truyền.
-          schema:
-            type: integer
-            minimum: 0
-            maximum: 3
-            default: 0
-            example: 0
-        - name: to
-          in: query
-          required: true
-          description: >-
-            Chỉ số ga đến. Nhận giá trị từ 1 đến 4. Mặc định là 4 khi không truyền.
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 4
-            default: 4
-            example: 4
-      responses:
-        "200":
-          description: Truy vấn thành công
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  tripId:
-                    type: string
-                  fromIndex:
-                    type: integer
-                  toIndex:
-                    type: integer
-                  requestedMask:
-                    type: integer
-                  seats:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/SeatResponse"
-              example:
-                tripId: "SE1-2026"
-                fromIndex: 0
-                toIndex: 4
-                requestedMask: 15
-                seats:
-                  - seatNumber: 1
-                    available: true
-                  - seatNumber: 2
-                    available: false
-                  - seatNumber: 3
-                    available: true
-        "400":
-          description: Query params không hợp lệ (from/to không phải số, from >= to)
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                code: VALIDATION_ERROR
-                message: "to phải lớn hơn from"
-        "500":
-          $ref: "#/components/responses/UnexpectedError"
-
-  /api/v1/bookings:
-    post:
-      operationId: create_booking
-      tags:
-        - Bookings
-      summary: Đặt vé tàu mới
-      description: Đặt một vé cho một chuyến tàu, một ghế cụ thể và một chặng đường. Chặng đường được chọn phải chưa bị đặt. Cần Bearer token trong header Authorization.
-      security:
-        - BearerAuth: []
-      parameters:
-        - $ref: "#/components/parameters/AuthorizationHeader"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - tripId
-                - seatNumber
-                - fromIndex
-                - toIndex
-              properties:
-                tripId:
-                  type: string
-                  description: Định danh chuyến tàu (phải trùng với dữ liệu trong hệ thống)
-                  example: "SE1-2026"
-                seatNumber:
-                  type: integer
-                  minimum: 1
-                  maximum: 1000
-                  description: Số ghế muốn đặt
-                  example: 5
-                fromIndex:
-                  type: integer
-                  minimum: 0
-                  maximum: 3
-                  description: >-
-                    Chỉ số ga xuất phát (0..3). Ví dụ: 0 là ga A, 1 là ga B.
-                  example: 0
-                toIndex:
-                  type: integer
-                  minimum: 1
-                  maximum: 4
-                  description: >-
-                    Chỉ số ga đến (1..4). Phải lớn hơn fromIndex.
-                  example: 2
-            examples:
-              create-booking-success:
-                summary: Example request body
-                value:
-                  tripId: "SE1-2026"
-                  seatNumber: 5
-                  fromIndex: 0
-                  toIndex: 2
-      responses:
-        "201":
-          description: Đặt vé thành công
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    $ref: "#/components/schemas/BookingResponse"
-              example:
-                data:
-                  bookingId: "d7a3b8f2-9c1e-4f6a-b2d5-8e3c7a9f1d4b"
-                  tripId: "SE1-2026"
-                  seatNumber: 5
-                  fromIndex: 0
-                  toIndex: 2
-                  segmentMask: 3
-                  status: "CONFIRMED"
-        "400":
-          description: Dữ liệu nhập không hợp lệ (seatNumber ngoài range, fromIndex >= toIndex)
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                code: VALIDATION_ERROR
-                message: "toIndex phải lớn hơn fromIndex"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "409":
-          description: Ghế đã bị đặt ở chặng đường đã chọn hoặc ghế không tồn tại
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                code: SEGMENT_CONFLICT
-                message: "Ghế số 5 đã có người đặt ở chặng này hoặc không tồn tại!"
-        "500":
-          $ref: "#/components/responses/UnexpectedError"
-
-  /api/v1/bookings/{bookingId}:
-    get:
-      operationId: get_booking
-      tags:
-        - Bookings
-      summary: Xem chi tiết vé theo mã vé
-      description: >-
-        Lấy thông tin chi tiết một vé đã đặt dựa trên mã vé. Chỉ chủ sở hữu vé
-        hoặc admin mới xem được. Cần Bearer token trong header Authorization.
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: bookingId
-          in: path
-          required: true
-          description: Mã vé định danh UUID
-          schema:
-            type: string
-            example: "66f57871b69f64a132fae201"
-        - $ref: "#/components/parameters/AuthorizationHeader"
-      responses:
-        "200":
-          description: Truy vấn thành công
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    $ref: "#/components/schemas/BookingResponse"
-              example:
-                data:
-                  bookingId: "66f57871b69f64a132fae201"
-                  tripId: "SE1-2026"
-                  seatNumber: 5
-                  fromIndex: 0
-                  toIndex: 2
-                  segmentMask: 3
-                  status: "CONFIRMED"
-                  createdAt: "2026-10-03T10:30:00.000Z"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/UnexpectedError"
-
-    delete:
-      operationId: delete_booking
-      tags:
-        - Bookings
-      summary: Hủy vé (nhả chặng ghế)
-      description: >-
-        Hủy một vé đã đặt và giải phóng các đoạn ghế đã chiếm dụng. Chỉ chủ sở hữu vé
-        mới hủy được. Cần Bearer token trong header Authorization.
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: bookingId
-          in: path
-          required: true
-          description: Mã vé định danh UUID cần hủy
-          schema:
-            type: string
-            example: "66f57871b69f64a132fae201"
-        - $ref: "#/components/parameters/AuthorizationHeader"
-      responses:
-        "200":
-          description: Hủy vé thành công, ghế đã được nhả
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      bookingId:
-                        type: string
-                      tripId:
-                        type: string
-                      seatNumber:
-                        type: integer
-                      message:
-                        type: string
-              example:
-                data:
-                  bookingId: "66f57871b69f64a132fae201"
-                  tripId: "SE1-2026"
-                  seatNumber: 5
-                  message: "Hủy vé thành công"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/UnexpectedError"
-
-components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: Đưa access token JWT vào header Authorization dưới dạng "Bearer <token>"
-
-  schemas:
-    Error:
-      type: object
-      properties:
-        code:
-          type: string
-          description: Mã lỗi của ứng dụng
-          example: INTERNAL_ERROR
-        message:
-          type: string
-          description: Thông báo lỗi bằng tiếng Việt
-          example: "Lỗi máy chủ nội bộ"
-
-    SuccessResponse:
-      type: object
+        - data
       properties:
         data:
-          type: object
-          description: Dữ liệu trả về
-          example: {}
+          $ref: "#/components/schemas/CreateBookingData"
+
+    BookingDetailData:
+      type: object
+      required:
+        - bookingId
+        - tripId
+        - seatNumber
+        - fromIndex
+        - toIndex
+        - segmentMask
+        - createdAt
+      properties:
+        bookingId:
+          type: string
+          format: uuid
+        tripId:
+          type: string
+        seatNumber:
+          type: integer
+        fromIndex:
+          type: integer
+        toIndex:
+          type: integer
+        segmentMask:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    BookingDetailResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: "#/components/schemas/BookingDetailData"
+
+    DeleteBookingData:
+      type: object
+      required:
+        - bookingId
+        - message
+      properties:
+        bookingId:
+          type: string
+          format: uuid
+        message:
+          type: string
+
+    DeleteBookingResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: "#/components/schemas/DeleteBookingData"
