@@ -176,6 +176,36 @@ class MongooseSeatInventoryRepository {
             inFlightLoads.delete(cacheKey);
         }
     };
+
+    async findByRequestId(requestId) {
+        const seat = await SeatInventory.findOne(
+            { "allocations.requestId": requestId },
+            {
+                "allocations.$": 1,
+                tripId: 1,
+                seatNumber: 1
+            }
+        ).lean();
+
+
+        if (!seat || !seat.allocations || seat.allocations.length === 0) {
+            return null;
+        }
+
+        const alloc = seat.allocations[0];
+
+        return {
+            bookingId: alloc.bookingId,
+            tripId: seat.tripId,
+            seatNumber: seat.seatNumber,
+            fromIndex: alloc.fromIndex,
+            toIndex: alloc.toIndex,
+            segmentMask: alloc.segmentMask,
+            requestId: alloc.requestId,
+            fingerprint: alloc.fingerprint,
+            status: "CONFIRMED"
+        };
+    }
 }
 
 module.exports = MongooseSeatInventoryRepository;

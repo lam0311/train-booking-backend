@@ -12,7 +12,11 @@ info:
 
 servers:
   - url: http://localhost:5000
-    description: Server phát triển cục bộ
+    description: Server phát triển cục bộ (Local)
+  - url: https://train-booking-backend-3ri7.onrender.com
+    description: Server Production (Render)
+  - url: /
+    description: Server hiện tại (Relative URL)
 
 # Security: áp dụng toàn cục (Swagger UI sẽ hiển thị nút Authorize)
 security:
@@ -33,13 +37,12 @@ tags:
     description: Đặt vé mới, xem chi tiết vé và hủy vé
 
 components:
-  parameters:
-    AuthorizationHeader:
-      in: header
-      required: true
-      schema:
-        type: string
-      description: Bearer token nhận được từ đăng nhập, ví dụ "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Đưa access token JWT vào header Authorization dưới dạng "Bearer <token>"
 
   responses:
     Unauthorized:
@@ -502,7 +505,15 @@ paths:
       security:
         - BearerAuth: []
       parameters:
-        - $ref: "#/components/parameters/AuthorizationHeader"
+        - name: Idempotency-Key
+          in: header
+          required: false
+          description: >-
+            Khóa định danh duy nhất cho yêu cầu đặt vé. Dùng để đảm bảo tính Idempotency, 
+            tránh việc bị đặt vé hoặc trừ tiền trùng lặp khi mạng chập chờn / client retry.
+          schema:
+            type: string
+            example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
       requestBody:
         required: true
         content:
@@ -550,6 +561,13 @@ paths:
       responses:
         "201":
           description: Đặt vé thành công
+          headers:
+            Idempotency-Replayed:
+              description: >-
+                Trả về "true" nếu đơn đặt vé này được replay từ giao dịch trước đó có cùng Idempotency-Key.
+              schema:
+                type: string
+                example: "true"
           content:
             application/json:
               schema:
@@ -578,14 +596,24 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "409":
-          description: Ghế đã bị đặt ở chặng đường đã chọn hoặc ghế không tồn tại
+          description: >-
+            Xung đột đặt vé: Ghế đã bị đặt ở chặng được chọn (SEGMENT_CONFLICT), 
+            hoặc Idempotency-Key đã dùng cho một thông tin đặt vé khác (IDEMPOTENCY_CONFLICT).
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-              example:
-                code: SEGMENT_CONFLICT
-                message: "Ghế số 5 đã có người đặt ở chặng này hoặc không tồn tại!"
+              examples:
+                segment_conflict:
+                  summary: Ghế đã có người đặt
+                  value:
+                    code: SEGMENT_CONFLICT
+                    message: "Ghế số 5 đã có người đặt ở chặng này hoặc không tồn tại!"
+                idempotency_conflict:
+                  summary: Dùng lại Idempotency-Key với nội dung khác
+                  value:
+                    code: IDEMPOTENCY_CONFLICT
+                    message: "Idempotency-Key này đã được dùng cho một thông tin đặt vé khác!"
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
@@ -608,7 +636,6 @@ paths:
           schema:
             type: string
             example: "66f57871b69f64a132fae201"
-        - $ref: "#/components/parameters/AuthorizationHeader"
       responses:
         "200":
           description: Truy vấn thành công
@@ -654,7 +681,6 @@ paths:
           schema:
             type: string
             example: "66f57871b69f64a132fae201"
-        - $ref: "#/components/parameters/AuthorizationHeader"
       responses:
         "200":
           description: Hủy vé thành công, ghế đã được nhả
@@ -687,31 +713,3 @@ paths:
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
-components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: Đưa access token JWT vào header Authorization dưới dạng "Bearer <token>"
-
-  schemas:
-    Error:
-      type: object
-      properties:
-        code:
-          type: string
-          description: Mã lỗi của ứng dụng
-          example: INTERNAL_ERROR
-        message:
-          type: string
-          description: Thông báo lỗi bằng tiếng Việt
-          example: "Lỗi máy chủ nội bộ"
-
-    SuccessResponse:
-      type: object
-      properties:
-        data:
-          type: object
-          description: Dữ liệu trả về
-          example: {}

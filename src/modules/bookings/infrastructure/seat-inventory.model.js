@@ -26,6 +26,14 @@ const allocationSchema = new Schema({
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    requestId: { // nhận diện yêu cầu dùng để tránh trùng lặp khi retry
+        type: String,
+        default: null
+    },
+    fingerprint: { // nhận diện thông tin đặt vé tránh trùng lặp khi retry
+        type: String,
+        default: null
     }
 },
     { _id: false }
@@ -45,8 +53,10 @@ seatInventorySchema.index({ tripId: 1, seatNumber: 1 }, { unique: true });
 
 seatInventorySchema.index({
     "allocations.bookingId": 1,
-    "allocations.userId": 1
+    "allocations.userId": 1,
 });
+
+seatInventorySchema.index({ "allocations.requestId": 1 }, { sparse: true });
 
 const SeatInventory = mongoose.model("SeatInventory", seatInventorySchema, "seat_inventories");
 
