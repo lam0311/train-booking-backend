@@ -24,11 +24,9 @@ class BookingController {
                 idempotencyKey
             });
 
-            if (result.replayed) {
-                res.setHeader("Idempotency-Replayed", "true");
-            }
+            res.setHeader("Idempotency-Replayed", result.replayed ? "true" : "false");
 
-            return res.status(201).json({ data: result.booking });
+            return res.status(201).json({ data: result });
         } catch (error) {
             next(error);
         }
