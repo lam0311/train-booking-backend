@@ -26,7 +26,7 @@ const connectDatabase = async (uri) => {
         console.log("Database connected successfully");
     } catch (error) {
         console.error("Database connection error:", error);
-        process.exit(1);
+        throw error;
     }
 };
 
@@ -39,7 +39,12 @@ const disconnectDatabase = async () => {
     }
 };
 
+const isDatabaseReady = () => {
+    return mongoose.connection.readyState === 1; // 1 = connected
+};
+
 module.exports = {
     connectDatabase,
     disconnectDatabase,
+    isDatabaseReady
 };

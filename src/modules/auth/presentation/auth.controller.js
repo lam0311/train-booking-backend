@@ -9,7 +9,7 @@ class AuthController {
 
     register = async (req, res, next) => {
         try {
-            const { email, password } = req.body;
+            const { email, password } = req.body ?? {};
             const result = await this.registerUseCase.execute({ email, password });
             return res.status(201).json({ data: result });
         } catch (error) {
@@ -19,7 +19,7 @@ class AuthController {
 
     login = async (req, res, next) => {
         try {
-            const { email, password } = req.body;
+            const { email, password } = req.body ?? {};
             const result = await this.loginUseCase.execute({ email, password });
 
             return res.status(200).json({ data: result });
@@ -30,7 +30,7 @@ class AuthController {
 
     refresh = async (req, res, next) => {
         try {
-            const { refreshToken } = req.body;
+            const { refreshToken } = req.body ?? {};
             const result = await this.refreshTokenUseCase.execute({ refreshToken });
             return res.status(200).json({ data: result });
         } catch (error) {
@@ -40,7 +40,7 @@ class AuthController {
 
     logout = async (req, res, next) => {
         try {
-            const { refreshToken } = req.body;
+            const { refreshToken } = req.body ?? {};
             const result = await this.logoutUseCase.execute({ refreshToken });
             return res.status(200).json({ data: result });
         } catch (error) {
