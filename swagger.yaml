@@ -13,7 +13,11 @@ info:
 
 servers:
   - url: http://localhost:5000
-    description: Server phát triển cục bộ
+    description: Server phát triển cục bộ (Local)
+  - url: https://train-booking-backend-3ri7.onrender.com
+    description: Server Production (Render)
+  - url: /
+    description: Server hiện tại (Relative URL)
 
 tags:
   - name: Sức khỏe hệ thống
@@ -316,6 +320,16 @@ paths:
         cần dùng chưa bị một allocation khác chiếm. Yêu cầu access token JWT.
       security:
         - BearerAuth: []
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          description: >-
+            Khóa định danh duy nhất (UUID v4) cho yêu cầu đặt vé. Dùng để đảm bảo tính Idempotency, 
+            tránh việc bị đặt vé hoặc trừ tiền trùng lặp khi mạng chập chờn / client retry.
+          schema:
+            type: string
+            example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
       requestBody:
         required: true
         content:
@@ -330,6 +344,12 @@ paths:
       responses:
         "201":
           description: Đặt vé thành công.
+          headers:
+            Idempotency-Replayed:
+              description: Trả về "true" nếu đơn đặt vé này được replay từ giao dịch trước đó có cùng Idempotency-Key.
+              schema:
+                type: string
+                example: "true"
           content:
             application/json:
               schema:
@@ -463,12 +483,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
 components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: Nhập access token JWT. Swagger UI tự gửi header Authorization theo dạng Bearer <token>.
 
   parameters:
     TripId:
@@ -478,18 +492,22 @@ components:
       description: Định danh chuyến tàu.
       schema:
         type: string
-        minLength: 1
-        maxLength: 120
-      example: SE1-2026
+        example: "SE1-2026"
     BookingId:
       name: bookingId
       in: path
       required: true
-      description: Mã vé UUID được tạo khi đặt vé thành công.
+      description: Mã vé UUID.
       schema:
         type: string
         format: uuid
-      example: "d7a3b8f2-9c1e-4f6a-b2d5-8e3c7a9f1d4b"
+        example: "d7a3b8f2-9c1e-4f6a-b2d5-8e3c7a9f1d4b"
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Đưa access token JWT vào header Authorization dưới dạng "Bearer <token>"
 
   responses:
     GlobalRateLimited:
@@ -539,6 +557,66 @@ components:
               message: Lỗi máy chủ nội bộ
 
   schemas:
+
+    BookingDetailData:
+      type: object
+      required:
+        - bookingId
+        - tripId
+        - seatNumber
+        - fromIndex
+        - toIndex
+        - segmentMask
+      properties:
+        bookingId:
+          type: string
+          format: uuid
+        tripId:
+          type: string
+        seatNumber:
+          type: integer
+        fromIndex:
+          type: integer
+        toIndex:
+          type: integer
+        segmentMask:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    BookingDetailResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: "#/components/schemas/BookingDetailData"
+
+    DeleteBookingData:
+      type: object
+      required:
+        - bookingId
+        - tripId
+        - seatNumber
+        - message
+      properties:
+        bookingId:
+          type: string
+        tripId:
+          type: string
+        seatNumber:
+          type: integer
+        message:
+          type: string
+
+    DeleteBookingResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: "#/components/schemas/DeleteBookingData"
     HealthResponse:
       type: object
       required:
@@ -785,58 +863,15 @@ components:
         data:
           $ref: "#/components/schemas/CreateBookingData"
 
-    BookingDetailData:
+    AuthResponse:
       type: object
-      required:
-        - bookingId
-        - tripId
-        - seatNumber
-        - fromIndex
-        - toIndex
-        - segmentMask
-        - createdAt
       properties:
-        bookingId:
+        accessToken:
           type: string
-          format: uuid
-        tripId:
+          description: Access token (có giá trị 15 phút)
+        refreshToken:
           type: string
-        seatNumber:
-          type: integer
-        fromIndex:
-          type: integer
-        toIndex:
-          type: integer
-        segmentMask:
-          type: integer
-        createdAt:
-          type: string
-          format: date-time
-
-    BookingDetailResponse:
-      type: object
+          description: Refresh token (có giá trị 7 ngày)
       required:
-        - data
-      properties:
-        data:
-          $ref: "#/components/schemas/BookingDetailData"
-
-    DeleteBookingData:
-      type: object
-      required:
-        - bookingId
-        - message
-      properties:
-        bookingId:
-          type: string
-          format: uuid
-        message:
-          type: string
-
-    DeleteBookingResponse:
-      type: object
-      required:
-        - data
-      properties:
-        data:
-          $ref: "#/components/schemas/DeleteBookingData"
+        - accessToken
+        - refreshToken

@@ -12,13 +12,19 @@ class BookingController {
     createBooking = async (req, res, next) => {
         try {
             const { tripId, seatNumber, fromIndex, toIndex } = req.body;
+
+            const idempotencyKey = req.headers["idempotency-key"];
+
             const result = await this.createBookingUseCase.execute({
                 tripId,
                 seatNumber: Number(seatNumber),
                 fromIndex: Number(fromIndex),
                 toIndex: Number(toIndex),
                 userId: req.auth?.userId,
+                idempotencyKey
             });
+
+            res.setHeader("Idempotency-Replayed", result.replayed ? "true" : "false");
 
             return res.status(201).json({ data: result });
         } catch (error) {
@@ -41,7 +47,7 @@ class BookingController {
             });
 
             return res.status(200).json({ data: result });
-            
+
         } catch (error) {
             next(error);
         }

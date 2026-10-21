@@ -110,3 +110,9 @@ Khi vượt giới hạn → trả về `429 Too Many Requests`.
 - Đây là tool phân tích mã nguồn tĩnh và đánh giá độ bảo mật của tool ta
 - File owasp-top-ten.yaml có chứa tới 560 rules cho rất nhiều ngôn ngữ. SEMGREP sẽ tự động lựa chọn rules dựa trên ngôn ngữ của mã nguồn 
 và loại bỏ cả những rules dành cho frontend, chỉ sử dụng rules cho backend thuần.
+
+## AUDIT:
+- **Package**: `audit`
+- **Mục đích**: Rà soát toàn bộ các gói runtime dependency
+- Đảm bảo không sử dụng thư viện có lỗ hổng CVE
+- npm audit --omit=dev
