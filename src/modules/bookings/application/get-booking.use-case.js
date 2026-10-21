@@ -1,8 +1,10 @@
 const AppError = require("../../../shared/domain/app-error");
+const { buildSegmentInfo } = require("../../trips/domain/trip-info");
 
 class GetBookingUseCase {
-    constructor(seatInventoryRepository) {
+    constructor(seatInventoryRepository, tripRepository) {
         this.seatInventoryRepository = seatInventoryRepository;
+        this.tripRepository = tripRepository;
     }
 
     execute = async ({ bookingId, userId }) => {
@@ -21,6 +23,10 @@ class GetBookingUseCase {
             throw new AppError("NOT_FOUND", "Không tìm thấy thông tin vé!", 404);
         }
 
+        // Lấy thông tin chuyến tàu để enrich response
+        const trip = await this.tripRepository.findByTripId(seat.tripId);
+        const segmentInfo = buildSegmentInfo(trip, allocation.fromIndex, allocation.toIndex);
+
         return {
             bookingId: allocation.bookingId,
             tripId: seat.tripId,
@@ -28,11 +34,11 @@ class GetBookingUseCase {
             fromIndex: allocation.fromIndex,
             toIndex: allocation.toIndex,
             segmentMask: allocation.segmentMask,
+            from: segmentInfo.from,
+            to: segmentInfo.to,
             createdAt: allocation.createdAt
         };
-
     };
 }
-
 
 module.exports = GetBookingUseCase;

@@ -1,10 +1,12 @@
 const crypto = require("node:crypto");
 const AppError = require("../../../shared/domain/app-error");
 const { buildSegmentMask } = require("../domain/segment-mask");
+const { buildSegmentInfo } = require("../../trips/domain/trip-info");
 
 class CreateBookingUsecase {
-    constructor(seatInventoryRepository) {
+    constructor(seatInventoryRepository, tripRepository) {
         this.seatInventoryRepository = seatInventoryRepository;
+        this.tripRepository = tripRepository;
     }
 
     execute = async ({ tripId, seatNumber, fromIndex, toIndex, userId }) => {
@@ -36,7 +38,11 @@ class CreateBookingUsecase {
             );
         }
 
-        // trả về thông tin đặt vé 
+        // Lấy thông tin chuyến tàu để enrich response
+        const trip = await this.tripRepository.findByTripId(tripId);
+        const segmentInfo = buildSegmentInfo(trip, fromIndex, toIndex);
+
+        // trả về thông tin đặt vé
         return {
             bookingId,
             tripId,
@@ -44,6 +50,8 @@ class CreateBookingUsecase {
             fromIndex,
             toIndex,
             segmentMask,
+            from: segmentInfo.from,
+            to: segmentInfo.to,
             status: "CONFIRMED"
         };
     };

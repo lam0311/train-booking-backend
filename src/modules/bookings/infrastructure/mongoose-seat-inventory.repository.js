@@ -143,6 +143,14 @@ class MongooseSeatInventoryRepository {
             .lean();
     };
 
+    findBookingsByUser = async (userId) => {
+        return SeatInventory.find({
+            "allocations.userId": userId
+        })
+            .select("tripId seatNumber allocations")
+            .lean();
+    };
+
     // lấy sơ đồ ghế của chuyến tàu
     findSeatByTrip = async (tripId) => {
         const cacheKey = `seats:${tripId}`;

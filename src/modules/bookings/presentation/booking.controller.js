@@ -1,11 +1,11 @@
 class BookingController {
     constructor(createBookingUseCase, getSeatsUseCase,
-        releaseOwnedUseCase, getBookingUseCase) {
+        releaseOwnedUseCase, getBookingUseCase, getMyBookingsUseCase) {
         this.createBookingUseCase = createBookingUseCase;
         this.getSeatsUseCase = getSeatsUseCase;
         this.releaseOwnedUseCase = releaseOwnedUseCase;
         this.getBookingUseCase = getBookingUseCase;
-
+        this.getMyBookingsUseCase = getMyBookingsUseCase;
     }
 
     // API đặt vé 
@@ -32,7 +32,7 @@ class BookingController {
         try {
             const { tripId } = req.params;
 
-            const { from, to } = req.query;
+            const { from, to } = req.validatedQuery;
             
             const result = await this.getSeatsUseCase.execute({
                 tripId,
@@ -73,6 +73,21 @@ class BookingController {
             const result = await this.getBookingUseCase.execute({
                 bookingId, userId
             });
+
+            return res.status(200).json({ data: result });
+        } catch (error) {
+            next(error);
+        }
+    };
+    // API lấy danh sách vé của người dùng hiện tại
+    getMyBookings = async (req, res, next) => {
+        try {
+            const userId = req.auth?.userId;
+            if (!userId) {
+                return res.status(401).json({ error: { code: "UNAUTHORIZED", message: "Chưa xác thực" } });
+            }
+            
+            const result = await this.getMyBookingsUseCase.execute({ userId });
 
             return res.status(200).json({ data: result });
         } catch (error) {
