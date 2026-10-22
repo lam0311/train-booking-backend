@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("node:path");
 const cors = require("cors");
 const bookingRoutes = require("./modules/bookings/presentation/booking.routes");
 const authRoutes = require("./modules/auth/presentation/auth.routes");
@@ -49,6 +50,12 @@ const CreateApp = () => {
     });
     app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
+    // tắt CSP để cho phép inline script/style
+    app.use("/demo", (req, res, next) => {
+        res.removeHeader("Content-Security-Policy");
+        next();
+    }, express.static(path.join(__dirname, "public")));
+
     app.use("/api/v1", authRoutes);
     app.use("/api/v1", bookingRoutes);
 
@@ -71,4 +78,4 @@ const CreateApp = () => {
 
 };
 
-module.exports = CreateApp; 
+module.exports = CreateApp;

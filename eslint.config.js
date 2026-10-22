@@ -30,6 +30,7 @@ module.exports = [
             "coverage/**",
             "src/**/*.test.js",
             "src/**/*.spec.js",
+            "src/public/**",
         ]
     }
 ];
