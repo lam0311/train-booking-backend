@@ -3,12 +3,13 @@ const path = require("node:path");
 const cors = require("cors");
 const bookingRoutes = require("./modules/bookings/presentation/booking.routes");
 const authRoutes = require("./modules/auth/presentation/auth.routes");
+const tripsRoutes = require("./modules/trips/presentation/trip.routes");
 const helmet = require("helmet"); // 	Ẩn thông tin, set security headers
-const compression = require("compression"); // 	Nén response, giảm băng thông 
+const compression = require("compression"); // 	Nén response, giảm băng thông
 const rateLimit = require("express-rate-limit"); // Giới hạn request cho mỗi IP
 const swaggerUi = require("swagger-ui-express");
 const YAML = require("yamljs");
-
+const { isDatabaseReady } = require("./config/database");
 
 const CreateApp = () => {
     const app = express();
@@ -44,6 +45,14 @@ const CreateApp = () => {
         res.status(200).json({ status: "ok" });
     });
 
+    app.get("/health/ready", (req, res) => {
+        if (isDatabaseReady()) {
+            return res.status(200).json({ status: "ok", database: "ready" });
+        } else {
+            return res.status(503).json({ status: "not_ready", database: "not_ready" });
+        }
+    });
+
     const swaggerDocument = YAML.load("./swagger.yaml");
     app.get("/openapi.json", (req, res) => {
         res.json(swaggerDocument);
@@ -58,10 +67,10 @@ const CreateApp = () => {
 
     app.use("/api/v1", authRoutes);
     app.use("/api/v1", bookingRoutes);
+    app.use("/api/v1", tripsRoutes);
 
     // xử lý lỗi tập chung
     app.use((err, req, res, _next) => {
-
         const statusCode = err.statusCode || 500;
         const code = err.code || "INTERNAL_ERROR";
         const message = statusCode === 500 ? "Lỗi máy chủ nội bộ" : err.message;

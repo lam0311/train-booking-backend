@@ -5,6 +5,8 @@ const LoginUseCase = require("../application/login.use-case");
 const RefreshTokenUseCase = require("../application/refresh-token.use-case");
 const LogoutUseCase = require("../application/logout.use-case");
 const AuthController = require("./auth.controller");
+const authSchema = require("./auth.schema");
+const validateBody = require("../../../shared/presentation/validate-body");
 
 const router = express.Router();
 
@@ -35,8 +37,8 @@ const authLimiter = rateLimit({
     }
 });
 
-router.post("/auth/login", authLimiter, controller.login);
-router.post("/auth/register", authLimiter, controller.register);
+router.post("/auth/login", authLimiter, validateBody(authSchema), controller.login);
+router.post("/auth/register", authLimiter, validateBody(authSchema), controller.register);
 router.post("/auth/refresh", authLimiter, controller.refresh);
 router.post("/auth/logout", controller.logout);
 

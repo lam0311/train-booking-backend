@@ -9,7 +9,7 @@ from datetime import datetime
 from collections import Counter
 
 BASE_URL    = "https://train-booking-backend-3ri7.onrender.com"
-COMMIT_HASH = "de4ef84"
+COMMIT_HASH = "c78957e"
 
 USER_STEPS = [50, 100, 150, 200, 300, 400, 500, 600, 700, 800,
               900, 1000, 1200, 1400, 1600, 1800, 2000, 2200,
