@@ -64,3 +64,679 @@
         transform: translateX(0);
     }
 }
+
+/* ========================================================
+   THEME SUPPORT: COLOR-SCHEME & LIGHT / DARK MODE
+   ======================================================== */
+:root {
+    color-scheme: light dark;
+}
+
+:root:has(> head > meta[name="color-scheme"][content="dark"]) {
+    color-scheme: dark;
+}
+
+:root:has(> head > meta[name="color-scheme"][content="light"]) {
+    color-scheme: light;
+}
+
+/* ========================================================
+   LIGHT THEME: TOÀN BỘ OVERRIDES CHO TẤT CẢ CÁC THÀNH PHẦN
+   ======================================================== */
+html.light body {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+}
+
+/* Navigation bar */
+html.light #navbar {
+    background-color: rgba(255, 255, 255, 0.94) !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+html.light #navbar .text-slate-200 {
+    color: #0f172a !important;
+}
+
+html.light #navbar .nav-links a {
+    color: #475569 !important;
+}
+
+html.light #navbar .nav-links a:hover,
+html.light #navbar .nav-links a.text-cyan-400 {
+    color: #0284c7 !important;
+}
+
+/* Các lớp nền cơ bản (Cards, Containers) */
+html.light .bg-slate-950,
+html.light .bg-slate-950\/80,
+html.light .bg-slate-950\/85,
+html.light .bg-slate-950\/90,
+html.light .bg-slate-950\/50,
+html.light .bg-slate-950\/40 {
+    background-color: #ffffff !important;
+}
+
+html.light .bg-slate-900,
+html.light .bg-slate-900\/40,
+html.light .bg-slate-900\/50,
+html.light .bg-slate-900\/60,
+html.light .bg-slate-900\/70,
+html.light .bg-slate-900\/80,
+html.light .bg-slate-900\/85 {
+    background-color: #f1f5f9 !important;
+}
+
+html.light .bg-slate-800 {
+    background-color: #e2e8f0 !important;
+}
+
+html.light .bg-slate-800\/50 {
+    background-color: rgba(226, 232, 240, 0.7) !important;
+}
+
+html.light .hover\:bg-slate-800:hover,
+html.light .hover\:bg-slate-700:hover {
+    background-color: #e2e8f0 !important;
+}
+
+/* Viền (Borders) */
+html.light .border-slate-800,
+html.light .border-slate-800\/80,
+html.light .border-slate-800\/90,
+html.light .border-slate-700,
+html.light .border-slate-700\/50,
+html.light .border-slate-700\/60 {
+    border-color: #cbd5e1 !important;
+}
+
+/* Độ đổ bóng cho các card lớn */
+html.light .rounded-2xl.border,
+html.light .rounded-xl.border {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+}
+
+/* Màu chữ chung */
+html.light .text-slate-100,
+html.light .text-slate-200 {
+    color: #0f172a !important;
+}
+
+html.light .text-slate-300 {
+    color: #1e293b !important;
+}
+
+html.light .text-slate-400 {
+    color: #334155 !important;
+}
+
+html.light .text-slate-500 {
+    color: #64748b !important;
+}
+
+/* Màu thương hiệu & Điểm nhấn có độ tương phản cao */
+html.light .text-cyan-400,
+html.light .text-cyan-300 {
+    color: #0284c7 !important;
+}
+
+html.light .text-emerald-400,
+html.light .text-emerald-300 {
+    color: #047857 !important;
+}
+
+html.light .text-rose-400,
+html.light .text-rose-300 {
+    color: #be123c !important;
+}
+
+html.light .text-amber-400,
+html.light .text-amber-300\/90,
+html.light .text-amber-200 {
+    color: #b45309 !important;
+}
+
+html.light .text-indigo-400 {
+    color: #4338ca !important;
+}
+
+/* ========================================================
+   HỆ THỐNG MÀU SẮC & HUY HIỆU (COLOR & BADGE SYSTEM)
+   Khắc phục toàn diện độ tương phản màu 950 khi bật Light Mode
+   ======================================================== */
+
+/* 1. EMERALD / GREEN (PASS, ACTIVE, KHẢ DỤNG, THÀNH CÔNG) */
+html.light .bg-emerald-950,
+html.light .bg-emerald-950\/20,
+html.light .bg-emerald-950\/30,
+html.light .bg-emerald-950\/40,
+html.light .bg-emerald-950\/50,
+html.light .bg-emerald-950\/60,
+html.light .bg-emerald-950\/80,
+html.light [class*="bg-emerald-950"] {
+    background-color: #ecfdf5 !important;
+}
+
+html.light .border-emerald-800,
+html.light .border-emerald-700,
+html.light .border-emerald-700\/60,
+html.light .border-emerald-700\/80,
+html.light [class*="border-emerald-"] {
+    border-color: #a7f3d0 !important;
+}
+
+html.light .text-emerald-400,
+html.light .text-emerald-300,
+html.light [class*="text-emerald-"] {
+    color: #047857 !important;
+}
+
+/* 2. ROSE / RED (FAIL, CONFLICT, XUNG ĐỘT, TỪ CHỐI) */
+html.light .bg-rose-950,
+html.light .bg-rose-950\/20,
+html.light .bg-rose-950\/30,
+html.light .bg-rose-950\/40,
+html.light .bg-rose-950\/50,
+html.light .bg-rose-950\/80,
+html.light [class*="bg-rose-950"] {
+    background-color: #fff1f2 !important;
+}
+
+html.light .border-rose-900,
+html.light .border-rose-900\/80,
+html.light .border-rose-800,
+html.light .border-rose-700,
+html.light [class*="border-rose-"] {
+    border-color: #fecdd3 !important;
+}
+
+html.light .text-rose-400,
+html.light .text-rose-300,
+html.light .text-rose-200,
+html.light [class*="text-rose-"] {
+    color: #be123c !important;
+}
+
+/* 3. CYAN / BLUE (HEART, SELECTION, INFO, ACTIVE STEP) */
+html.light .bg-cyan-950,
+html.light .bg-cyan-950\/20,
+html.light .bg-cyan-950\/30,
+html.light .bg-cyan-950\/40,
+html.light .bg-cyan-950\/50,
+html.light [class*="bg-cyan-950"] {
+    background-color: #f0f9ff !important;
+}
+
+html.light .border-cyan-800,
+html.light .border-cyan-700,
+html.light .border-cyan-500\/30,
+html.light [class*="border-cyan-800"],
+html.light [class*="border-cyan-700"] {
+    border-color: #bae6fd !important;
+}
+
+html.light .text-cyan-400,
+html.light .text-cyan-300,
+html.light .text-cyan-200,
+html.light [class*="text-cyan-"] {
+    color: #0284c7 !important;
+}
+
+/* 4. AMBER / YELLOW (WARNING, TYPE, PENDING, VULNERABILITY DEFINITIONS) */
+html.light .bg-amber-950,
+html.light .bg-amber-950\/40,
+html.light [class*="bg-amber-950"] {
+    background-color: #fefce8 !important;
+}
+
+html.light .border-amber-800,
+html.light .border-amber-700,
+html.light [class*="border-amber-"] {
+    border-color: #fde68a !important;
+}
+
+html.light .text-amber-400,
+html.light .text-amber-300,
+html.light .text-amber-300\/90,
+html.light .text-amber-200,
+html.light [class*="text-amber-"] {
+    color: #b45309 !important;
+}
+
+/* ========================================================
+   SƠ ĐỒ TOA TÀU (COACH SEATMAP) TRONG LIGHT MODE
+   ======================================================== */
+/* Ghế khả dụng / Đặt được */
+html.light .seat-card.border-emerald-700\/80,
+html.light .seat-card[id^="seatBtn_"]:not(.border-rose-900\/80) {
+    background-color: #ecfdf5 !important;
+    border-color: #10b981 !important;
+    box-shadow: 0 1px 3px rgba(16, 185, 129, 0.15) !important;
+}
+
+html.light .seat-card.border-emerald-700\/80 span,
+html.light .seat-card.border-emerald-700\/80 div,
+html.light .seat-card[id^="seatBtn_"]:not(.border-rose-900\/80) span,
+html.light .seat-card[id^="seatBtn_"]:not(.border-rose-900\/80) div {
+    color: #065f46 !important;
+}
+
+html.light .seat-card.border-emerald-700\/80 .bg-emerald-950,
+html.light .seat-card[id^="seatBtn_"] .bg-emerald-950 {
+    background-color: #d1fae5 !important;
+    border-color: #6ee7b7 !important;
+    color: #065f46 !important;
+}
+
+/* Ghế xung đột / Trùng chặng */
+html.light .seat-card.border-rose-900\/80 {
+    background-color: #fff1f2 !important;
+    border-color: #f43f5e !important;
+    box-shadow: 0 1px 3px rgba(244, 63, 94, 0.12) !important;
+    opacity: 0.9 !important;
+}
+
+html.light .seat-card.border-rose-900\/80 span,
+html.light .seat-card.border-rose-900\/80 div {
+    color: #9f1239 !important;
+}
+
+html.light .seat-card.border-rose-900\/80 .bg-rose-950 {
+    background-color: #ffe4e6 !important;
+    border-color: #fda4af !important;
+    color: #9f1239 !important;
+}
+
+/* Thanh chặng nhỏ bên trong mỗi ghế */
+html.light .seat-card .bg-slate-900 {
+    background-color: #cbd5e1 !important;
+}
+
+html.light .seat-card .bg-slate-800 {
+    background-color: #e2e8f0 !important;
+}
+
+/* Lối đi trung tâm toa tàu */
+html.light .bg-slate-900\/90 {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #475569 !important;
+}
+
+/* Đường ray tàu chạy & Chuyến tàu thực tế */
+html.light .h-2.rounded-full.bg-slate-800 {
+    background-color: #e2e8f0 !important;
+}
+
+/* Nút bấm phụ (Reset button) */
+html.light #resetSeatsBtn {
+    background-color: #ffffff !important;
+    color: #334155 !important;
+    border-color: #cbd5e1 !important;
+}
+
+html.light #resetSeatsBtn:hover {
+    background-color: #f8fafc !important;
+    border-color: #94a3b8 !important;
+}
+
+/* ========================================================
+   BỘ LỌC CHẶNG & DROPDOWN CONTROLS
+   ======================================================== */
+html.light input:not([type="checkbox"]):not([type="radio"]),
+html.light select {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+html.light select option {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+}
+
+/* ========================================================
+   CONCURRENCY STRESS TEST & METRICS
+   ======================================================== */
+html.light #stressSuccessCount {
+    color: #047857 !important;
+}
+
+html.light #stressConflictCount {
+    color: #be123c !important;
+}
+
+html.light #stressAvgLatency {
+    color: #0284c7 !important;
+}
+
+html.light #stressLockStatus {
+    color: #0f172a !important;
+}
+
+html.light .terminal-container {
+    background-color: #0b1120 !important;
+    border-color: #1e293b !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+html.light .terminal-container span {
+    color: #94a3b8 !important;
+}
+
+html.light #concurrencyLogTerminal {
+    background-color: #0b1120 !important;
+}
+
+html.light #concurrencyLogTerminal .text-slate-400 {
+    color: #94a3b8 !important;
+}
+
+/* ========================================================
+   ALU SIMULATOR / THANH GHI BẬT TẮT BIT
+   ======================================================== */
+/* Bit xung đột (1 đỏ) */
+html.light .border-rose-500.bg-rose-950\/40 {
+    background-color: #fff1f2 !important;
+    border-color: #f43f5e !important;
+    color: #be123c !important;
+}
+
+html.light .border-rose-500.bg-rose-950\/40 span,
+html.light .border-rose-500.bg-rose-950\/40 div {
+    color: #be123c !important;
+}
+
+html.light .border-rose-500.bg-rose-950\/40 .bg-rose-950\/80 {
+    background-color: #ffe4e6 !important;
+    border-color: #fda4af !important;
+    color: #9f1239 !important;
+}
+
+/* Bit khả dụng (1 xanh lá) */
+html.light .border-emerald-500.bg-emerald-950\/30 {
+    background-color: #ecfdf5 !important;
+    border-color: #10b981 !important;
+    color: #047857 !important;
+}
+
+html.light .border-emerald-500.bg-emerald-950\/30 span,
+html.light .border-emerald-500.bg-emerald-950\/30 div {
+    color: #047857 !important;
+}
+
+html.light .border-emerald-500.bg-emerald-950\/30 .bg-emerald-950\/80 {
+    background-color: #d1fae5 !important;
+    border-color: #a7f3d0 !important;
+    color: #065f46 !important;
+}
+
+/* Bit nhàn rỗi (0 xám) */
+html.light .border-slate-700.bg-slate-900\/80 {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #475569 !important;
+}
+
+html.light .border-slate-700.bg-slate-900\/80 span,
+html.light .border-slate-700.bg-slate-900\/80 div {
+    color: #475569 !important;
+}
+
+html.light .border-slate-700.bg-slate-900\/80 .bg-slate-800 {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #64748b !important;
+}
+
+/* Tab nút bấm ALU */
+html.light .tab-btn.active {
+    background-color: #e0f2fe !important;
+    border-color: #0284c7 !important;
+    color: #0369a1 !important;
+}
+
+html.light .tab-btn:not(.active) {
+    color: #64748b !important;
+}
+
+html.light .tab-btn:not(.active):hover {
+    color: #0f172a !important;
+}
+
+/* ========================================================
+   CÂY KIẾN TRÚC & FLOW SIMULATOR (HEXAGONAL)
+   ======================================================== */
+html.light .tree-node.border-cyan-400 {
+    background-color: #f0f9ff !important;
+    border-color: #0284c7 !important;
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15) !important;
+}
+
+html.light .tree-node.border-cyan-400 span,
+html.light .tree-node.border-cyan-400 div {
+    color: #0369a1 !important;
+}
+
+html.light .tree-node.border-cyan-400 .bg-cyan-500 {
+    background-color: #0284c7 !important;
+    color: #ffffff !important;
+}
+
+html.light .tree-node.bg-slate-900\/50 {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+}
+
+html.light .tree-node.bg-slate-900\/50 span,
+html.light .tree-node.bg-slate-900\/50 div {
+    color: #334155 !important;
+}
+
+html.light #tabBtnOverview.border-cyan-500,
+html.light #tabBtnCode.border-cyan-500,
+html.light #tabBtnPacket.border-cyan-500 {
+    background-color: #e0f2fe !important;
+    border-color: #0284c7 !important;
+    color: #0369a1 !important;
+}
+
+/* Code viewer / Pre blocks giữ phong cách terminal tối tương phản cao */
+html.light pre,
+html.light #apiConsoleResponseOutput,
+html.light #inspectorCodeSnippet,
+html.light #inspectorPacketData {
+    background-color: #0b1120 !important;
+    border-color: #1e293b !important;
+    color: #38bdf8 !important;
+}
+
+/* ========================================================
+   THANH CUỘN (SCROLLBAR) TRONG LIGHT MODE
+   ======================================================== */
+html.light ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* ========================================================
+   BÁO CÁO AN NINH TĨNH SAST (OWASP TOP 10) TRONG LIGHT MODE
+   ======================================================== */
+/* Badge trạng thái tổng: STATUS: 10/10 PASS // 0 VULNERABILITIES */
+html.light #sastStatusBadge,
+html.light .sast-status-badge,
+html.light .bg-emerald-950\/60.border-emerald-700\/60 {
+    background-color: #dcfce7 !important;
+    border-color: #86efac !important;
+    color: #15803d !important;
+    font-weight: 700 !important;
+    box-shadow: 0 1px 2px rgba(22, 101, 52, 0.1) !important;
+}
+
+/* Ruleset metadata text */
+html.light .sast-ruleset-text,
+html.light .text-slate-500.hidden.sm\:inline {
+    color: #334155 !important;
+    font-weight: 600 !important;
+}
+
+/* Dot xanh nhấp nháy */
+html.light .w-2.h-2.rounded-full.bg-emerald-400 {
+    background-color: #059669 !important;
+}
+
+/* Khung dòng lệnh Semgrep Cloud */
+html.light #sastCmdBar,
+html.light .sast-cmd-bar {
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+html.light #sastCmdBar code,
+html.light .sast-cmd-bar code {
+    color: #0f172a !important;
+    font-weight: 600 !important;
+}
+
+html.light #sastCmdBar .text-cyan-400,
+html.light .sast-cmd-bar .text-cyan-400 {
+    color: #0284c7 !important;
+}
+
+html.light .sast-findings-badge,
+html.light #sastCmdBar .text-emerald-400,
+html.light .sast-cmd-bar .text-emerald-400 {
+    background-color: #ecfdf5 !important;
+    border: 1px solid #a7f3d0 !important;
+    color: #047857 !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+}
+
+/* Thẻ A01–A10 trong SAST Grid */
+html.light .sast-card,
+html.light .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-2.xl\:grid-cols-3 > div {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+html.light .sast-card:hover,
+html.light .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-2.xl\:grid-cols-3 > div:hover {
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
+}
+
+/* Nhãn phân loại lỗ hổng (IDOR, NOSQL, SCA, v.v.) */
+html.light .sast-cat-tag,
+html.light .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-2.xl\:grid-cols-3 .text-\[10px\].text-slate-500 {
+    background-color: #f1f5f9 !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #475569 !important;
+    padding: 1px 6px !important;
+    border-radius: 4px !important;
+    font-weight: 600 !important;
+}
+
+/* Mô tả kiểu lỗ hổng */
+html.light .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-2.xl\:grid-cols-3 .text-\[11px\].text-amber-300\/90 {
+    color: #92400e !important;
+}
+
+html.light .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-2.xl\:grid-cols-3 .text-\[11px\].text-amber-300\/90 .text-amber-400 {
+    color: #b45309 !important;
+}
+
+/* Mô tả biện pháp phòng vệ */
+html.light .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-2.xl\:grid-cols-3 .text-\[11px\].text-slate-400 {
+    color: #334155 !important;
+}
+
+html.light .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-2.xl\:grid-cols-3 .text-\[11px\].text-slate-400 .text-cyan-400 {
+    color: #0284c7 !important;
+}
+
+/* Inline code tags trong toàn trang */
+html.light code:not(pre code) {
+    background-color: #f1f5f9 !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 1px 5px !important;
+    border-radius: 4px !important;
+    font-weight: 600 !important;
+}
+
+html.light code.text-cyan-300,
+html.light code.text-cyan-400 {
+    color: #0369a1 !important;
+}
+
+html.light code.text-amber-200,
+html.light code.text-amber-300,
+html.light code.text-amber-400 {
+    color: #b45309 !important;
+}
+
+/* ========================================================
+   ĐỊNH HƯỚNG NÂNG CẤP PHA 2 (ROADMAP) TRONG LIGHT MODE
+   ======================================================== */
+html.light #roadmap .grid > div {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+html.light #roadmap .grid > div .bg-slate-950 {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+    color: #1e293b !important;
+}
+
+html.light #roadmap .grid > div strong.text-emerald-400 {
+    color: #047857 !important;
+}
+
+html.light #roadmap .grid > div .border-t.border-slate-800\/80 {
+    border-color: #e2e8f0 !important;
+    color: #475569 !important;
+    font-weight: 600 !important;
+}
+
+/* Các nhãn tầng kiến trúc (Hexagonal Tree Badges) */
+html.light .tree-node span.bg-cyan-950 {
+    background-color: #e0f2fe !important;
+    border-color: #7dd3fc !important;
+    color: #0369a1 !important;
+    font-weight: 700 !important;
+}
+
+html.light .tree-node span.bg-slate-950 {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #334155 !important;
+    font-weight: 600 !important;
+}
+
+html.light #activeLayerTag {
+    background-color: #e0f2fe !important;
+    border-color: #7dd3fc !important;
+    color: #0369a1 !important;
+    font-weight: 700 !important;
+}
+
+/* Hero Badge */
+html.light .inline-flex.border-cyan-500\/30 {
+    background-color: #e0f2fe !important;
+    border-color: #bae6fd !important;
+    color: #0369a1 !important;
+    font-weight: 600 !important;
+}
