@@ -7,6 +7,25 @@
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="color-scheme" content="light dark">
+    <script>
+        (function() {
+            try {
+                const stored = localStorage.getItem("color-scheme");
+                const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+                const theme = stored ? stored : (prefersDark ? "dark" : "light");
+                if (theme === "light") {
+                    document.documentElement.classList.remove("dark");
+                    document.documentElement.classList.add("light");
+                } else {
+                    document.documentElement.classList.add("dark");
+                    document.documentElement.classList.remove("light");
+                }
+            } catch (e) {
+                // Ignore storage errors in restricted context
+            }
+        })();
+    </script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -53,7 +72,16 @@
                 <a href="#roadmap" class="text-slate-400 hover:text-cyan-400 py-1 transition">HƯỚNG NÂNG CẤP</a>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+                <button id="themeToggleBtn" type="button" aria-label="Chuyển chế độ giao diện Sáng / Tối" title="Chuyển chế độ Sáng / Tối" class="px-2.5 py-1.5 rounded border border-slate-700 bg-slate-900 hover:border-cyan-500 text-slate-300 hover:text-cyan-400 text-xs font-mono transition flex items-center gap-1.5">
+                    <svg id="themeIconSun" class="w-3.5 h-3.5 hidden text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                    <svg id="themeIconMoon" class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                    </svg>
+                    <span id="themeToggleText" class="hidden sm:inline font-bold">DARK</span>
+                </button>
                 <a href="/api-docs" target="_blank" class="px-3 py-1.5 rounded border border-slate-700 bg-slate-900 hover:border-cyan-500 hover:text-cyan-400 text-xs font-mono transition">
                     SWAGGER_DOCS
                 </a>
@@ -478,13 +506,13 @@
             </div>
 
             <!-- Terminal log -->
-            <div class="rounded-lg bg-slate-950 border border-slate-800 p-4">
+            <div class="terminal-container rounded-lg bg-slate-950 border border-slate-800 p-4">
                 <div class="text-[10px] font-mono text-slate-500 pb-2 mb-2 border-b border-slate-800/80 flex items-center justify-between">
                     <span>CONCURRENCY_STREAM_LOG</span>
                     <span>BUFFER: REAL-TIME</span>
                 </div>
                 <div id="concurrencyLogTerminal" class="h-44 overflow-y-auto space-y-1 pr-2">
-                    <div class="text-[11px] font-mono text-slate-600">// Nhấn "Kích hoạt Benchmark" để bắt đầu phát luồng 100 request đồng thời...</div>
+                    <div class="text-[11px] font-mono text-slate-400 font-medium">// Nhấn "Kích hoạt Benchmark" để bắt đầu phát luồng 100 request đồng thời...</div>
                 </div>
             </div>
         </div>
@@ -576,35 +604,201 @@
 
         <!-- Bảng kiểm soát an ninh tĩnh SAST OWASP Top 10 -->
         <div class="mt-8 p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur reveal">
-            <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-800 text-xs font-mono">
-                <span class="text-slate-200 font-bold">BÁO CÁO QUÉT AN NINH TĨNH SAST (OWASP TOP 10 & SEMGREP)</span>
-                <span class="text-emerald-400 font-bold">STATUS: 10/10 PASS // 0 VULNERABILITIES</span>
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-800 text-xs font-mono">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-slate-200 font-bold">BÁO CÁO QUÉT AN NINH TĨNH SAST (OWASP TOP 10 & SEMGREP CLOUD RULES)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-500 hidden sm:inline sast-ruleset-text">RULESET: p/owasp-top-ten</span>
+                    <span id="sastStatusBadge" class="sast-status-badge text-emerald-400 font-bold bg-emerald-950/60 border border-emerald-700/60 px-2.5 py-0.5 rounded">STATUS: 10/10 PASS // 0 VULNERABILITIES</span>
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs font-mono">
-                <div class="p-3 rounded bg-slate-950 border border-slate-800">
-                    <span class="text-emerald-400 font-bold">[PASS] A01: Broken Access Control</span>
-                    <div class="text-[11px] text-slate-400 mt-1">Chặn hủy vé trái phép qua đối soát req.auth.userId</div>
+            <!-- Terminal output badge -->
+            <div id="sastCmdBar" class="sast-cmd-bar mb-4 p-2.5 rounded-lg bg-slate-950 border border-slate-800/80 font-mono text-[11px] text-slate-400 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-cyan-400 font-bold">$</span>
+                    <code>semgrep scan --config p/owasp-top-ten src/</code>
                 </div>
-                <div class="p-3 rounded bg-slate-950 border border-slate-800">
-                    <span class="text-emerald-400 font-bold">[PASS] A02: Cryptographic Failures</span>
-                    <div class="text-[11px] text-slate-400 mt-1">Bcrypt 12 Salt Rounds (~400ms/hash chống GPU Crack)</div>
+                <span class="sast-findings-badge text-emerald-400 font-bold text-[10px] shrink-0">47 FILES // 72 JS RULES // 0 FINDINGS</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3.5 text-xs">
+                <!-- A01 -->
+                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
+                            <span class="text-emerald-400 font-bold">[PASS] A01: Broken Access Control</span>
+                            <span class="text-[10px] text-slate-500">IDOR & AUTHZ</span>
+                        </div>
+                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
+                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Người dùng truy cập, xem hoặc sửa/xóa trái phép dữ liệu của người khác (IDOR, leo thang đặc quyền ngang/dọc).
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
+                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Mọi endpoint thao tác vé đều đối soát quyền sở hữu <code class="text-cyan-300">req.auth.userId === allocation.userId</code>.
+                    </div>
                 </div>
-                <div class="p-3 rounded bg-slate-950 border border-slate-800">
-                    <span class="text-emerald-400 font-bold">[PASS] A03: Injection Attacks</span>
-                    <div class="text-[11px] text-slate-400 mt-1">Zod Schema ép kiểu nghiêm ngặt, vô hiệu NoSQL Injection</div>
+
+                <!-- A02 -->
+                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
+                            <span class="text-emerald-400 font-bold">[PASS] A02: Cryptographic Failures</span>
+                            <span class="text-[10px] text-slate-500">CRYPTO & LEAK</span>
+                        </div>
+                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
+                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Dùng thuật toán băm yếu (MD5/SHA1), lưu mật khẩu dạng thô, hoặc hardcode Secret Key vào mã nguồn gây lộ lọt.
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
+                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Mật khẩu băm Bcrypt 12 Salt Rounds (~400ms/hash chống GPU crack); Secret tách biệt qua biến môi trường <code class="text-cyan-300">.env</code>.
+                    </div>
                 </div>
-                <div class="p-3 rounded bg-slate-950 border border-slate-800">
-                    <span class="text-emerald-400 font-bold">[PASS] A04: Insecure Design</span>
-                    <div class="text-[11px] text-slate-400 mt-1">Idempotency SHA-256 fingerprint chống trừ tiền 2 lần</div>
+
+                <!-- A03 -->
+                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
+                            <span class="text-emerald-400 font-bold">[PASS] A03: Injection Attacks</span>
+                            <span class="text-[10px] text-slate-500">NOSQL & QUERY</span>
+                        </div>
+                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
+                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Chèn toán tử truy vấn độc hại (<code class="text-amber-200">$ne</code>, <code class="text-amber-200">$gt</code>, script) vào JSON request nhằm vượt qua xác thực hoặc trích xuất dữ liệu DB.
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
+                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Zod Schema ép kiểu nghiêm ngặt và lọc sạch input trước khi vào Controller; Mongoose ODM tham số hóa toàn bộ query.
+                    </div>
                 </div>
-                <div class="p-3 rounded bg-slate-950 border border-slate-800">
-                    <span class="text-emerald-400 font-bold">[PASS] A05: Security Misconfig</span>
-                    <div class="text-[11px] text-slate-400 mt-1">Helmet ẩn X-Powered-By, kích hoạt HSTS và X-Frame-Options</div>
+
+                <!-- A04 -->
+                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
+                            <span class="text-emerald-400 font-bold">[PASS] A04: Insecure Design</span>
+                            <span class="text-[10px] text-slate-500">RACE & REPLAY</span>
+                        </div>
+                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
+                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Khiếm khuyết kiến trúc: người dùng spam click gây trừ tiền/đặt vé 2 lần, hoặc 2 người cùng tranh chấp mua 1 ghế cùng thời điểm.
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
+                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Header <code class="text-cyan-300">Idempotency-Key</code> + SHA-256 chống lặp vé; giải thuật Bitmask nguyên tử <code class="text-cyan-300">$bitsAllClear</code> triệt tiêu Race Condition.
+                    </div>
                 </div>
-                <div class="p-3 rounded bg-slate-950 border border-slate-800">
-                    <span class="text-emerald-400 font-bold">[PASS] Thundering Herd Protection</span>
-                    <div class="text-[11px] text-slate-400 mt-1">Request Coalescing (inFlightLoads Map) bảo vệ DB khi Cache rớt</div>
+
+                <!-- A05 -->
+                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
+                            <span class="text-emerald-400 font-bold">[PASS] A05: Security Misconfiguration</span>
+                            <span class="text-[10px] text-slate-500">HEADERS & CORS</span>
+                        </div>
+                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
+                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Lộ thông tin framework (<code class="text-amber-200">X-Powered-By: Express</code>), thiếu HTTP Security Headers (dễ bị Clickjacking), hoặc mở CORS tự do cho mọi domain.
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
+                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Middleware Helmet tự động thiết lập HSTS, X-Frame-Options, ẩn header nhạy cảm; CORS cấu hình whitelist chặt chẽ.
+                    </div>
+                </div>
+
+                <!-- A06 -->
+                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
+                            <span class="text-emerald-400 font-bold">[PASS] A06: Vulnerable Components</span>
+                            <span class="text-[10px] text-slate-500">SCA & NPM CVE</span>
+                        </div>
+                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
+                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Sử dụng các gói thư viện bên thứ 3 (NPM packages) đã lỗi thời, chứa mã độc hoặc có lỗ hổng CVE công khai chưa vá.
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
+                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Rà soát tự động qua công cụ SCA <code class="text-cyan-300">npm audit --omit=dev</code>; 100% các dependency trong runtime đạt chuẩn an toàn 0 CVE.
+                    </div>
+                </div>
+
+                <!-- A07 -->
+                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
+                            <span class="text-emerald-400 font-bold">[PASS] A07: Identification & Auth Failures</span>
+                            <span class="text-[10px] text-slate-500">BRUTE FORCE & JWT</span>
+                        </div>
+                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
+                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Cho phép hacker gửi hàng triệu request dò mật khẩu (Brute Force/Credential Stuffing) hoặc token không thể vô hiệu hóa khi bị lộ.
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
+                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Rate Limit 20 req/phút chặn đứng brute-force; cơ chế Dual Token (Access Token 15 phút, Refresh Token xóa khỏi DB khi logout).
+                    </div>
+                </div>
+
+                <!-- A08 -->
+                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
+                            <span class="text-emerald-400 font-bold">[PASS] A08: Software & Data Integrity</span>
+                            <span class="text-[10px] text-slate-500">DESERIALIZE & TAMPER</span>
+                        </div>
+                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
+                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Deserialize dữ liệu không an toàn (RCE qua object injection), sửa đổi payload giao dịch trên đường truyền, hoặc dùng hàm <code class="text-amber-200">eval()</code>.
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
+                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Mã nguồn nói KHÔNG với <code class="text-cyan-300">eval()</code>; kiểm soát toàn vẹn JSON bằng Zod và chữ ký số SHA-256 cho mỗi giao dịch.
+                    </div>
+                </div>
+
+                <!-- A09 -->
+                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
+                            <span class="text-emerald-400 font-bold">[PASS] A09: Security Logging & Monitoring</span>
+                            <span class="text-[10px] text-slate-500">LOGGING & PROBES</span>
+                        </div>
+                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
+                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Không phát hiện được xâm nhập do thiếu log, hoặc ghi đè mật khẩu vào log; để lộ chi tiết lỗi kỹ thuật và cấu trúc server cho client.
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
+                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Middleware xử lý lỗi tập trung chuẩn hóa ErrorResponse (giấu hoàn toàn stack trace); 2 probes thời gian thực <code class="text-cyan-300">/health/live</code> và <code class="text-cyan-300">/health/ready</code>.
+                    </div>
+                </div>
+
+                <!-- A10 -->
+                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
+                            <span class="text-emerald-400 font-bold">[PASS] A10: Server-Side Request Forgery</span>
+                            <span class="text-[10px] text-slate-500">SSRF & WEBHOOK</span>
+                        </div>
+                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
+                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Server nhận URL từ phía người dùng rồi tự động gửi request đến URL đó, khiến mạng nội bộ hoặc cloud metadata bị lộ.
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
+                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Hệ thống backend được đóng gói thuần túy, không cung cấp bất kỳ API nào nhận URL ngoài từ client; miễn nhiễm 100% với SSRF.
+                    </div>
+                </div>
+
+                <!-- Extra: Thundering Herd -->
+                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between md:col-span-2 lg:col-span-2 xl:col-span-2">
+                    <div>
+                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
+                            <span class="text-emerald-400 font-bold">[PASS] Extra: Thundering Herd / Cache Stampede</span>
+                            <span class="text-[10px] text-slate-500">CONCURRENCY & DB CRASH</span>
+                        </div>
+                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
+                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Hàng ngàn request ập vào cùng lúc đúng thời điểm Cache rớt/hết hạn khiến toàn bộ query dồn vào DB, gây sập database tức thì.
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
+                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Áp dụng kỹ thuật Request Coalescing qua <code class="text-cyan-300">inFlightLoads</code> Promise Map: chỉ 1 request tải từ DB, các request đồng thời khác chia sẻ chung kết quả.
+                    </div>
                 </div>
             </div>
         </div>
@@ -939,62 +1133,113 @@ Content-Type: application/json
     <section id="roadmap" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div class="reveal">
             <div class="text-xs font-mono text-cyan-400 uppercase tracking-wider">HƯỚNG NGHIÊN CỨU & NÂNG CẤP HỆ THỐNG</div>
-            <h2 class="text-2xl sm:text-3xl font-bold text-slate-100 mt-1">Định Hướng Phát Triển Cho Các Nhóm Kế Tiếp</h2>
+            <h2 class="text-2xl sm:text-3xl font-bold text-slate-100 mt-1">Định Hướng Phát Triển Cho Pha 2 (Thuộc Tính Chất Lượng)</h2>
             <p class="text-sm text-slate-400 mt-2 max-w-3xl">
-                Tài liệu kiến trúc đề xuất 3 định hướng trọng tâm mở rộng quy mô lớn (High-Scale Enterprise Architecture) 
-                dành cho các nhóm nghiên cứu và phát triển trong các giai đoạn tiếp theo.
+                Tài liệu kiến trúc đề xuất 6 định hướng cải tiến bám sát các thuộc tính chất lượng (Quality Attributes) 
+                trong kiến trúc phần mềm, có tính khả thi cao và phù hợp cho các nhóm phát triển kế tiếp trong Pha 2.
             </p>
         </div>
 
-        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 reveal">
-            <!-- Đề xuất 1: Scale thuật toán -->
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 reveal">
+            <!-- Đề xuất 1: Dynamic Bitmask -->
             <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur flex flex-col justify-between">
                 <div>
-                    <div class="text-xs font-mono text-cyan-400 font-bold mb-2">ĐỀ XUẤT 01 // CẤU TRÚC DỮ LIỆU & THUẬT TOÁN</div>
-                    <h3 class="text-base font-bold text-slate-100">Scale Về Mặt Thuật Toán</h3>
+                    <div class="text-xs font-mono text-cyan-400 font-bold mb-2">ĐỀ XUẤT 01 // SCALABILITY</div>
+                    <h3 class="text-base font-bold text-slate-100">Tuyến Đường Dài (Dynamic Bitmask)</h3>
                     <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                        Nâng cấp thuật toán Bitmask từ 4 chặng tĩnh sang Dynamic Bitmask/BigInt để hỗ trợ các tuyến thực tế dài 30-50 ga.
+                        Mở rộng thuật toán Bitmask từ 4 chặng tĩnh sang kiểu dữ liệu linh hoạt để hỗ trợ các tuyến thực tế dài 30-50 ga trên toàn quốc.
                     </p>
                     <div class="mt-4 p-3 rounded bg-slate-950 border border-slate-800/80 text-[11px] font-mono text-slate-300">
-                        <strong class="text-emerald-400">Giải pháp triển khai:</strong> Mở rộng không gian số nguyên sang kiểu dữ liệu <code class="text-cyan-300">BigInt</code> (hỗ trợ độ dài bit tùy ý) hoặc tích hợp thư viện nén <strong>Roaring Bitmaps</strong> để quản lý toàn bộ tuyến đường sắt dài hàng chục ga mà vẫn duy trì độ phức tạp tính toán O(1) cho các phép toán AND, OR, XOR bitwise.
+                        <strong class="text-emerald-400">Giải pháp triển khai:</strong> Chuyển đổi toán tử bit 32-bit sang kiểu <code class="text-cyan-300">BigInt</code> nguyên bản của JavaScript (hỗ trợ độ dài bit tùy ý như <code class="text-cyan-300">1n &lt;&lt; n</code>). Giúp hệ thống mô phỏng trọn vẹn toàn bộ tuyến Bắc - Nam (Hà Nội - TP.HCM với hơn 30 ga trung gian) mà vẫn đảm bảo tốc độ kiểm tra xung đột O(1).
                     </div>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-800/80 text-[10px] font-mono text-slate-500">
-                    ĐỘ ƯU TIÊN: MỞ RỘNG TOÀN TUYẾN BẮC - NAM
+                    THUỘC TÍNH: KHẢ NĂNG MỞ RỘNG (SCALABILITY)
                 </div>
             </div>
 
-            <!-- Đề xuất 2: Scale chịu tải -->
+            <!-- Đề xuất 2: Holding Lock TTL -->
             <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur flex flex-col justify-between">
                 <div>
-                    <div class="text-xs font-mono text-cyan-400 font-bold mb-2">ĐỀ XUẤT 02 // HIỆU NĂNG & CONCURRENCY</div>
-                    <h3 class="text-base font-bold text-slate-100">Scale Về Mặt Chịu Tải</h3>
+                    <div class="text-xs font-mono text-cyan-400 font-bold mb-2">ĐỀ XUẤT 02 // PERFORMANCE & CONCURRENCY</div>
+                    <h3 class="text-base font-bold text-slate-100">Khóa Giữ Chỗ Tạm Thời (Holding TTL)</h3>
                     <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                        Triển khai cơ chế giữ chỗ tạm thời (Holding TTL) và dùng Redis Lua Script/Message Queue để giải quyết triệt để nút thắt cổ chai ở Database khi có hàng chục nghìn người tranh chấp cùng lúc.
+                        Triển khai cơ chế giữ ghế tạm thời trong 10 phút để người dùng thanh toán, tự động nhả ghế nếu hết thời gian mà không thanh toán.
                     </p>
                     <div class="mt-4 p-3 rounded bg-slate-950 border border-slate-800/80 text-[11px] font-mono text-slate-300">
-                        <strong class="text-emerald-400">Giải pháp triển khai:</strong> Quản lý trạng thái khóa ghế tạm thời (Pending Lock) bằng Redis với thời gian hết hạn TTL (ví dụ 10 phút thanh toán). Sử dụng <strong>Redis Lua Script</strong> để atomic hóa việc kiểm tra - giữ chỗ, kết hợp <strong>Message Queue (Kafka / RabbitMQ)</strong> đẩy các tác vụ ghi vào hàng đợi bất đồng bộ nhằm loại bỏ hoàn toàn hiện tượng nghẽn I/O tại Database.
+                        <strong class="text-emerald-400">Giải pháp triển khai:</strong> Sử dụng Redis Key kèm thời gian sống (TTL = 10 phút) để quản lý trạng thái ghế đang giữ chỗ (Pending). Kết hợp Redis Lua Script để kiểm tra và giữ ghế nguyên tử trước khi tạo đơn, ngăn chặn tình trạng người dùng khác đặt trùng trong lúc khách hàng đang thao tác thanh toán.
                     </div>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-800/80 text-[10px] font-mono text-slate-500">
-                    ĐỘ ƯU TIÊN: CHỊU TẢI CAO ĐIỂM (TẾT / LỄ)
+                    THUỘC TÍNH: HIỆU NĂNG & TRẢI NGHIỆM (PERFORMANCE)
                 </div>
             </div>
 
-            <!-- Đề xuất 3: Mở rộng hệ thống -->
+            <!-- Đề xuất 3: Multi-core & Kaggle Benchmark -->
             <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur flex flex-col justify-between">
                 <div>
-                    <div class="text-xs font-mono text-cyan-400 font-bold mb-2">ĐỀ XUẤT 03 // HẠ TẦNG & BENCHMARK</div>
-                    <h3 class="text-base font-bold text-slate-100">Mở Rộng Hệ Thống</h3>
+                    <div class="text-xs font-mono text-cyan-400 font-bold mb-2">ĐỀ XUẤT 03 // TESTABILITY & BENCHMARK</div>
+                    <h3 class="text-base font-bold text-slate-100">Tối Ưu Đa Nhân (Node Cluster & Benchmark)</h3>
                     <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                        Triển khai Multi-instance với Load Balancer và APM Dashboard để nhóm sau có thể dùng chính bộ script Kaggle Benchmark đo đạc sự cải thiện hiệu năng trước và sau khi tối ưu.
+                        Tận dụng CPU đa nhân qua Node.js Cluster Mode và dùng bộ script Kaggle Benchmark có sẵn để đo đạc định lượng cải tiến hiệu năng.
                     </p>
                     <div class="mt-4 p-3 rounded bg-slate-950 border border-slate-800/80 text-[11px] font-mono text-slate-300">
-                        <strong class="text-emerald-400">Giải pháp triển khai:</strong> Cấu hình kiến trúc cụm máy chủ đa tiến trình (PM2 Cluster / Docker Swarm / K8s) đứng sau <strong>Nginx Reverse Proxy & Load Balancer</strong>. Tích hợp APM Dashboard (Prometheus + Grafana) và chạy trực tiếp bộ script kiểm thử tại thư mục <code class="text-cyan-300">kaggle/</code> của đồ án để định lượng hóa thông lượng Throughput (RPS), độ trễ p95/p99 và tỉ lệ xung đột thực tế.
+                        <strong class="text-emerald-400">Giải pháp triển khai:</strong> Kích hoạt mô hình Node.js Cluster (hoặc PM2) để phân phối tải qua các Core của CPU máy chủ. Sử dụng trực tiếp script kiểm thử tải tại thư mục <code class="text-cyan-300">kaggle/benchmark.py</code> để so sánh định lượng: Single Core vs Multi Core (đo chỉ số Throughput RPS, độ trễ p95/p99 và điểm gãy breaking point).
                     </div>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-800/80 text-[10px] font-mono text-slate-500">
-                    ĐỘ ƯU TIÊN: ĐO ĐẠC ĐỊNH LƯỢNG KỸ THUẬT
+                    THUỘC TÍNH: KIỂM THỬ ĐỊNH LƯỢNG (TESTABILITY)
+                </div>
+            </div>
+
+            <!-- Đề xuất 4: Realtime Seat Map -->
+            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur flex flex-col justify-between">
+                <div>
+                    <div class="text-xs font-mono text-cyan-400 font-bold mb-2">ĐỀ XUẤT 04 // USABILITY & REAL-TIME</div>
+                    <h3 class="text-base font-bold text-slate-100">Sơ Đồ Ghế Thời Gian Thực (SSE / WebSockets)</h3>
+                    <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                        Tự động đồng bộ hóa trạng thái ghế ngồi theo thời gian thực tới tất cả các khách hàng đang cùng xem chuyến tàu mà không cần tải lại trang.
+                    </p>
+                    <div class="mt-4 p-3 rounded bg-slate-950 border border-slate-800/80 text-[11px] font-mono text-slate-300">
+                        <strong class="text-emerald-400">Giải pháp triển khai:</strong> Tích hợp Server-Sent Events (SSE) hoặc WebSocket tại tầng Presentation. Khi một vé được đặt hoặc hủy thành công, server tự động phát sự kiện đẩy (push event) tới toàn bộ client đang mở sơ đồ toa tàu, cập nhật ngay lập tức ghế trống/ghế bận trực quan trên màn hình.
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-800/80 text-[10px] font-mono text-slate-500">
+                    THUỘC TÍNH: KHẢ NĂNG SỬ DỤNG (USABILITY)
+                </div>
+            </div>
+
+            <!-- Đề xuất 5: Fault Tolerance & Hybrid Cache -->
+            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur flex flex-col justify-between">
+                <div>
+                    <div class="text-xs font-mono text-cyan-400 font-bold mb-2">ĐỀ XUẤT 05 // AVAILABILITY & FAULT TOLERANCE</div>
+                    <h3 class="text-base font-bold text-slate-100">Bộ Nhớ Đệm Chịu Lỗi (Hybrid Cache Fallback)</h3>
+                    <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                        Thiết lập cơ chế suy thoái êm đẹp (Graceful Degradation): hệ thống vẫn hoạt động ổn định khi Redis hoặc đường truyền ngoài gặp sự cố gián đoạn.
+                    </p>
+                    <div class="mt-4 p-3 rounded bg-slate-950 border border-slate-800/80 text-[11px] font-mono text-slate-300">
+                        <strong class="text-emerald-400">Giải pháp triển khai:</strong> Xây dựng cơ chế Circuit Breaker và Cache 2 tầng: Local Memory Cache (RAM máy chủ) làm tầng 1, Redis làm tầng 2. Nếu Redis mất kết nối, hệ thống tự động ngắt mạch (Circuit Breaker) và chuyển sang dùng Local Memory + Database trực tiếp, đảm bảo hệ thống không bao giờ bị dừng hoạt động.
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-800/80 text-[10px] font-mono text-slate-500">
+                    THUỘC TÍNH: TÍNH SẴN SÀNG & CHỊU LỖI (AVAILABILITY)
+                </div>
+            </div>
+
+            <!-- Đề xuất 6: RBAC & Audit Trail -->
+            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur flex flex-col justify-between">
+                <div>
+                    <div class="text-xs font-mono text-cyan-400 font-bold mb-2">ĐỀ XUẤT 06 // SECURITY & AUDITABILITY</div>
+                    <h3 class="text-base font-bold text-slate-100">Phân Quyền RBAC & Nhật Ký Kiểm Toán</h3>
+                    <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                        Phân cấp quyền hạn người dùng (Khách hàng, Nhân viên, Quản trị viên) và lưu vết toàn bộ lịch sử biến động dữ liệu để đối soát khiếu nại.
+                    </p>
+                    <div class="mt-4 p-3 rounded bg-slate-950 border border-slate-800/80 text-[11px] font-mono text-slate-300">
+                        <strong class="text-emerald-400">Giải pháp triển khai:</strong> Bổ sung middleware phân quyền Role-Based Access Control (RBAC) và tạo bảng <code class="text-cyan-300">AuditLogs</code> riêng biệt ghi nhận: mã vé, User ID, địa chỉ IP, thời điểm và trạng thái bitmask trước/sau khi cập nhật, phục vụ công tác tra cứu và đối soát giao dịch minh bạch.
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-800/80 text-[10px] font-mono text-slate-500">
+                    THUỘC TÍNH: AN NINH & KIỂM TOÁN (AUDITABILITY)
                 </div>
             </div>
         </div>

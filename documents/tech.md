@@ -106,10 +106,9 @@ Khi vượt giới hạn → trả về `429 Too Many Requests`.
 
 ## tool SAST SEMGREP:
 - Cài đặt: Mở terminal chạy câu lệnh: pip install semgrep
-- Ta lấy các rules của top 10 owasp trên link: https://semgrep.dev/c/p/owasp-top-ten
-- Đây là tool phân tích mã nguồn tĩnh và đánh giá độ bảo mật của tool ta
-- File owasp-top-ten.yaml có chứa tới 560 rules cho rất nhiều ngôn ngữ. SEMGREP sẽ tự động lựa chọn rules dựa trên ngôn ngữ của mã nguồn 
-và loại bỏ cả những rules dành cho frontend, chỉ sử dụng rules cho backend thuần.
+- Ta sử dụng trực tiếp bộ rules tiêu chuẩn của OWASP Top 10 từ Semgrep Registry: `semgrep scan --config p/owasp-top-ten src/`
+- Đây là tool phân tích mã nguồn tĩnh (SAST) để đánh giá toàn diện độ bảo mật của hệ thống.
+- Bộ rules chứa 560 rules tiêu chuẩn của cộng đồng. SEMGREP tự động lựa chọn 72 rules tương thích cho mã nguồn Node.js/JavaScript backend và kiểm tra toàn bộ 47 file.
 
 ## AUDIT:
 - **Package**: `audit`

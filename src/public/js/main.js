@@ -70,7 +70,56 @@ function setupScrollReveal() {
     });
 }
 
+function setupThemeToggle() {
+    const toggleBtn = document.getElementById("themeToggleBtn");
+    const sunIcon = document.getElementById("themeIconSun");
+    const moonIcon = document.getElementById("themeIconMoon");
+    const toggleText = document.getElementById("themeToggleText");
+    const metaScheme = document.querySelector('meta[name="color-scheme"]');
+
+    function updateUI(theme) {
+        if (theme === "light") {
+            document.documentElement.classList.remove("dark");
+            document.documentElement.classList.add("light");
+            if (sunIcon) sunIcon.classList.remove("hidden");
+            if (moonIcon) moonIcon.classList.add("hidden");
+            if (toggleText) toggleText.innerText = "LIGHT";
+            if (metaScheme) metaScheme.content = "light";
+        } else {
+            document.documentElement.classList.add("dark");
+            document.documentElement.classList.remove("light");
+            if (sunIcon) sunIcon.classList.add("hidden");
+            if (moonIcon) moonIcon.classList.remove("hidden");
+            if (toggleText) toggleText.innerText = "DARK";
+            if (metaScheme) metaScheme.content = "dark";
+        }
+    }
+
+    const currentTheme = document.documentElement.classList.contains("light") ? "light" : "dark";
+    updateUI(currentTheme);
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener("click", () => {
+            const isLight = document.documentElement.classList.contains("light");
+            const newTheme = isLight ? "dark" : "light";
+            updateUI(newTheme);
+            try {
+                localStorage.setItem("color-scheme", newTheme);
+            } catch (e) {
+                // Ignore storage errors in restricted contexts
+            }
+        });
+    }
+
+    window.addEventListener("storage", (e) => {
+        if (e.key === "color-scheme" && e.newValue) {
+            updateUI(e.newValue);
+        }
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+    setupThemeToggle();
     setupNavbar();
     setupScrollReveal();
 
