@@ -10,11 +10,11 @@
   },
   "servers": [
     {
-      "url": "http://localhost:5000/api/v1",
+      "url": "http://localhost:5000",
       "description": "Local (PORT mặc định 5000)"
     },
     {
-      "url": "https://train-booking-backend-3ri7.onrender.com/api/v1",
+      "url": "https://train-booking-backend-3ri7.onrender.com",
       "description": "Production"
     }
   ],
@@ -48,18 +48,8 @@
           "Hệ thống"
         ],
         "summary": "Liveness probe",
-        "description": "Server còn sống hay không. Endpoint nằm ở **gốc** của host (`/health/live`), không nằm dưới `/api/v1`.",
+        "description": "Server còn sống hay không. Endpoint không nằm dưới `/api/v1`.",
         "security": [],
-        "servers": [
-          {
-            "url": "http://localhost:5000",
-            "description": "Local"
-          },
-          {
-            "url": "https://train-booking-backend-3ri7.onrender.com",
-            "description": "Production"
-          }
-        ],
         "responses": {
           "200": {
             "description": "Server đang chạy.",
@@ -87,18 +77,8 @@
           "Hệ thống"
         ],
         "summary": "Readiness probe",
-        "description": "Trả 200 khi đã kết nối được MongoDB, ngược lại 503. Endpoint nằm ở **gốc** của host.",
+        "description": "Trả 200 khi đã kết nối được MongoDB, ngược lại 503.",
         "security": [],
-        "servers": [
-          {
-            "url": "http://localhost:5000",
-            "description": "Local"
-          },
-          {
-            "url": "https://train-booking-backend-3ri7.onrender.com",
-            "description": "Production"
-          }
-        ],
         "responses": {
           "200": {
             "description": "Sẵn sàng nhận request.",
@@ -141,18 +121,8 @@
           "Hệ thống"
         ],
         "summary": "Lấy tài liệu OpenAPI dạng JSON",
-        "description": "Nằm ở **gốc** của host. Giao diện Swagger UI ở `/api-docs`.",
+        "description": "Giao diện Swagger UI ở `/api-docs`.",
         "security": [],
-        "servers": [
-          {
-            "url": "http://localhost:5000",
-            "description": "Local"
-          },
-          {
-            "url": "https://train-booking-backend-3ri7.onrender.com",
-            "description": "Production"
-          }
-        ],
         "responses": {
           "200": {
             "description": "Tài liệu OpenAPI.",
@@ -167,7 +137,7 @@
         }
       }
     },
-    "/auth/register": {
+    "/api/v1/auth/register": {
       "post": {
         "operationId": "registerUser",
         "tags": [
@@ -235,7 +205,7 @@
         }
       }
     },
-    "/auth/login": {
+    "/api/v1/auth/login": {
       "post": {
         "operationId": "loginUser",
         "tags": [
@@ -303,7 +273,7 @@
         }
       }
     },
-    "/auth/refresh": {
+    "/api/v1/auth/refresh": {
       "post": {
         "operationId": "refreshAccessToken",
         "tags": [
@@ -389,7 +359,7 @@
         }
       }
     },
-    "/auth/logout": {
+    "/api/v1/auth/logout": {
       "post": {
         "operationId": "logoutUser",
         "tags": [
@@ -465,7 +435,7 @@
         }
       }
     },
-    "/stations": {
+    "/api/v1/stations": {
       "get": {
         "operationId": "listStations",
         "tags": [
@@ -518,7 +488,7 @@
         }
       }
     },
-    "/trips": {
+    "/api/v1/trips": {
       "get": {
         "operationId": "searchTrips",
         "tags": [
@@ -674,7 +644,7 @@
         }
       }
     },
-    "/trips/{tripId}/seats": {
+    "/api/v1/trips/{tripId}/seats": {
       "get": {
         "operationId": "getTripSeats",
         "tags": [
@@ -766,7 +736,7 @@
         }
       }
     },
-    "/bookings": {
+    "/api/v1/bookings": {
       "post": {
         "operationId": "createBooking",
         "tags": [
@@ -890,7 +860,7 @@
         }
       }
     },
-    "/bookings/me": {
+    "/api/v1/bookings/me": {
       "get": {
         "operationId": "getMyBookings",
         "tags": [
@@ -948,7 +918,7 @@
         }
       }
     },
-    "/bookings/{bookingId}": {
+    "/api/v1/bookings/{bookingId}": {
       "get": {
         "operationId": "getBookingById",
         "tags": [
