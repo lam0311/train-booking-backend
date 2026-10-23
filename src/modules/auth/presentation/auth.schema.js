@@ -12,4 +12,4 @@ const authSchema = z.object({
         .max(72)   // bcrypt chỉ dùng tối đa 72 byte
 });
 
-module.exports = { authSchema };
+module.exports =  authSchema ;

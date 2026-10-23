@@ -1,0 +1,1212 @@
+openapi: 3.0.3
+info:
+  title: Train Booking API
+  version: 1.0.0
+  description: |
+    API đặt vé tàu theo **chặng** (segment). Một chuyến tàu có 5 ga (index 0..4) và 4 chặng
+    (chặng *i* nằm giữa ga *i* và ga *i+1*). Mỗi ghế lưu một `occupiedMask` 4 bit; một vé đi từ
+    ga `fromIndex` đến ga `toIndex` chiếm các bit `fromIndex .. toIndex-1`.
+    Ví dụ: 0→2 = `0011` (3), 2→4 = `1100` (12), 0→4 = `1111` (15). Hai vé trên cùng một ghế chỉ
+    được phép khi mask của chúng không giao nhau.
+
+    ## Quy ước chung
+    - **Thành công**: `{ "data": ... }`.
+    - **Lỗi**: `{ "error": { "code": "...", "message": "..." } }`.
+    - **Xác thực**: gửi header `Authorization: Bearer <accessToken>`. Access token sống 15 phút,
+      refresh token sống 7 ngày (cấu hình được qua `JWT_ACCESS_EXPIRES`, `JWT_REFRESH_EXPIRES`).
+    - **Giới hạn tần suất**: toàn bộ API giới hạn theo IP (mặc định 2000 request/phút, đổi bằng
+      `GLOBAL_RATE_LIMIT_MAX`). `/auth/login`, `/auth/register`, `/auth/refresh` bị giới hạn chặt hơn:
+      20 request/phút/IP.
+
+    ## Lưu ý về chỉ số ga (index)
+    `GET /stations` trả về chỉ số ga theo chiều **Hà Nội → Vinh** (Hà Nội = 0 … Vinh = 4).
+    Các chuyến chiều ngược (Vinh → Hà Nội) đánh index theo thứ tự ga của **chính chuyến đó**
+    (Vinh = 0 … Hà Nội = 4). Vì vậy, khi đặt vé hoặc tra cứu ghế, **luôn dùng `from.index` và `to.index`
+    lấy từ kết quả `GET /trips`**, không tự suy ra từ `/stations`.
+
+    ## Luồng đặt vé điển hình
+    1. `POST /auth/login` → lấy `accessToken`, `refreshToken`.
+    2. `GET /trips?from=&to=&date=` → chọn chuyến, ghi lại `tripId`, `from.index`, `to.index`.
+    3. `GET /trips/{tripId}/seats?from=&to=` → xem ghế còn trống ở chặng đó.
+    4. `POST /bookings` (kèm `Idempotency-Key`) → đặt ghế.
+    5. `GET /bookings/me`, `GET /bookings/{bookingId}`, `DELETE /bookings/{bookingId}`.
+  contact:
+    name: Train Booking Backend
+servers:
+  - url: http://localhost:5000/api/v1
+    description: Local (PORT mặc định 5000)
+  - url: https://train-booking-backend-3ri7.onrender.com/api/v1
+    description: Production
+tags:
+  - name: Hệ thống
+    description: Kiểm tra sức khỏe và tài liệu API.
+  - name: Xác thực
+    description: Đăng ký, đăng nhập, làm mới và thu hồi token.
+  - name: Chuyến tàu
+    description: Danh sách ga và tìm chuyến tàu.
+  - name: Ghế
+    description: Tra cứu tình trạng ghế theo chặng.
+  - name: Vé
+    description: Đặt, xem và hủy vé (yêu cầu đăng nhập).
+
+paths:
+  /health/live:
+    get:
+      operationId: getHealthLive
+      tags: [Hệ thống]
+      summary: Liveness probe
+      description: >-
+        Server còn sống hay không. Endpoint nằm ở **gốc** của host (`/health/live`), không nằm dưới `/api/v1`.
+      security: []
+      servers:
+        - url: http://localhost:5000
+          description: Local
+        - url: https://train-booking-backend-3ri7.onrender.com
+          description: Production
+      responses:
+        "200":
+          description: Server đang chạy.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthLiveResponse"
+              example:
+                status: ok
+        "429":
+          $ref: "#/components/responses/GlobalRateLimited"
+  /health/ready:
+    get:
+      operationId: getHealthReady
+      tags: [Hệ thống]
+      summary: Readiness probe
+      description: >-
+        Trả 200 khi đã kết nối được MongoDB, ngược lại 503. Endpoint nằm ở **gốc** của host.
+      security: []
+      servers:
+        - url: http://localhost:5000
+          description: Local
+        - url: https://train-booking-backend-3ri7.onrender.com
+          description: Production
+      responses:
+        "200":
+          description: Sẵn sàng nhận request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthReadyResponse"
+              example:
+                status: ok
+                database: ready
+        "503":
+          description: Chưa kết nối được cơ sở dữ liệu.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthReadyResponse"
+              example:
+                status: not_ready
+                database: not_ready
+        "429":
+          $ref: "#/components/responses/GlobalRateLimited"
+  /openapi.json:
+    get:
+      operationId: getOpenApiDocument
+      tags: [Hệ thống]
+      summary: Lấy tài liệu OpenAPI dạng JSON
+      description: Nằm ở **gốc** của host. Giao diện Swagger UI ở `/api-docs`.
+      security: []
+      servers:
+        - url: http://localhost:5000
+          description: Local
+        - url: https://train-booking-backend-3ri7.onrender.com
+          description: Production
+      responses:
+        "200":
+          description: Tài liệu OpenAPI.
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /auth/register:
+    post:
+      operationId: registerUser
+      tags: [Xác thực]
+      summary: Đăng ký tài khoản mới
+      description: >-
+        Email được trim và lưu dạng chữ thường. Mật khẩu được băm bằng bcrypt (cost 12).
+        Giới hạn 20 request/phút/IP.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRequest"
+            example:
+              email: nguyenvana@gmail.com
+              password: SecurePass123!
+      responses:
+        "201":
+          description: Đăng ký thành công.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterResponse"
+              example:
+                data:
+                  userId: 66f57871b69f64a132fae201
+                  email: nguyenvana@gmail.com
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "409":
+          description: Email đã được sử dụng.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: EMAIL_TAKEN
+                  message: Email này đã được sử dụng
+        "429":
+          $ref: "#/components/responses/AuthRateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /auth/login:
+    post:
+      operationId: loginUser
+      tags: [Xác thực]
+      summary: Đăng nhập
+      description: >-
+        Xác thực bằng email và mật khẩu, trả về cặp token. Mỗi tài khoản chỉ giữ **một** refresh token
+        hợp lệ tại một thời điểm: đăng nhập ở thiết bị mới sẽ làm refresh token cũ không còn dùng được.
+        Giới hạn 20 request/phút/IP.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRequest"
+            example:
+              email: nguyenvana@gmail.com
+              password: SecurePass123!
+      responses:
+        "200":
+          description: Đăng nhập thành công.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+              example:
+                data:
+                  accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example-access-token
+                  refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example-refresh-token
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          description: Sai email hoặc mật khẩu.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: INVALID
+                  message: Email hoặc mật khẩu không đúng!
+        "429":
+          $ref: "#/components/responses/AuthRateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /auth/refresh:
+    post:
+      operationId: refreshAccessToken
+      tags: [Xác thực]
+      summary: Làm mới access token
+      description: >-
+        Gửi refresh token trong body để nhận access token mới. Không cần header `Authorization`.
+        Refresh token phải còn hạn **và** trùng với token đang lưu của tài khoản.
+        Refresh token không được xoay vòng (response không chứa refresh token mới).
+        Giới hạn 20 request/phút/IP.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequest"
+            example:
+              refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example-refresh-token
+      responses:
+        "200":
+          description: Làm mới thành công.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RefreshResponse"
+              example:
+                data:
+                  accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.new-access-token
+        "401":
+          description: Thiếu, sai, hết hạn hoặc không khớp refresh token đang lưu.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missingRefreshToken:
+                  summary: Không gửi refreshToken
+                  value:
+                    error:
+                      code: NO_REFRESH_TOKEN
+                      message: Không có refresh token!
+                invalidRefreshToken:
+                  summary: Token sai chữ ký hoặc hết hạn
+                  value:
+                    error:
+                      code: INVALID_REFRESH_TOKEN
+                      message: Refresh token không hợp lệ hoặc đã hết hạn!
+                tokenMismatch:
+                  summary: Token hợp lệ nhưng không phải token hiện hành (đã đăng xuất / đăng nhập nơi khác)
+                  value:
+                    error:
+                      code: REFRESH_TOKEN_MISMATCH
+                      message: Refresh token không hợp lệ!
+        "429":
+          $ref: "#/components/responses/AuthRateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /auth/logout:
+    post:
+      operationId: logoutUser
+      tags: [Xác thực]
+      summary: Đăng xuất
+      description: >-
+        Thu hồi refresh token của tài khoản. Endpoint công khai, không cần access token.
+        Nếu refresh token không hợp lệ hoặc đã hết hạn, vẫn trả 200 (thao tác idempotent) nhưng không thu hồi gì.
+        Chỉ chịu giới hạn toàn cục, không có giới hạn riêng như login/register.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequest"
+            example:
+              refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example-refresh-token
+      responses:
+        "200":
+          description: Đăng xuất thành công, hoặc token vốn đã không còn hợp lệ.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogoutResponse"
+              examples:
+                successfulLogout:
+                  summary: Token hợp lệ, đã thu hồi
+                  value:
+                    data:
+                      message: Đã đăng xuất thành công!
+                alreadyInvalidToken:
+                  summary: Token không hợp lệ hoặc hết hạn
+                  value:
+                    data:
+                      message: Đã đăng xuất!
+        "400":
+          description: Không gửi refresh token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: NO_REFRESH_TOKEN
+                  message: Không có refresh token!
+        "429":
+          $ref: "#/components/responses/GlobalRateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /stations:
+    get:
+      operationId: listStations
+      tags: [Chuyến tàu]
+      summary: Danh sách 5 ga cố định
+      description: >-
+        Chỉ số ga ở đây theo chiều Hà Nội → Vinh. Xem mục "Lưu ý về chỉ số ga" ở phần mô tả API.
+      security: []
+      responses:
+        "200":
+          description: Danh sách ga.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StationsResponse"
+              example:
+                data:
+                  - { index: 0, name: Hà Nội }
+                  - { index: 1, name: Phủ Lý }
+                  - { index: 2, name: Ninh Bình }
+                  - { index: 3, name: Thanh Hóa }
+                  - { index: 4, name: Vinh }
+        "429":
+          $ref: "#/components/responses/GlobalRateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /trips:
+    get:
+      operationId: searchTrips
+      tags: [Chuyến tàu]
+      summary: Tìm chuyến tàu theo ga đi, ga đến và ngày
+      description: >-
+        Trả về các chuyến trong ngày có dừng ở cả hai ga và đi đúng chiều (ga đi đứng trước ga đến).
+        Kết quả có thể là mảng rỗng. Tên ga phải khớp chính xác (phân biệt dấu, hoa/thường) với `GET /stations`.
+        Dùng `from.index` / `to.index` trong kết quả cho các API đặt vé và tra cứu ghế.
+      security: []
+      parameters:
+        - name: from
+          in: query
+          required: true
+          description: Tên ga xuất phát.
+          schema:
+            type: string
+            minLength: 1
+            enum: [Hà Nội, Phủ Lý, Ninh Bình, Thanh Hóa, Vinh]
+          example: Hà Nội
+        - name: to
+          in: query
+          required: true
+          description: Tên ga đến, phải khác ga xuất phát.
+          schema:
+            type: string
+            minLength: 1
+            enum: [Hà Nội, Phủ Lý, Ninh Bình, Thanh Hóa, Vinh]
+          example: Vinh
+        - name: date
+          in: query
+          required: true
+          description: Ngày khởi hành, định dạng `YYYY-MM-DD`.
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+          example: "2026-10-25"
+      responses:
+        "200":
+          description: Danh sách chuyến phù hợp.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TripSearchResponse"
+              example:
+                data:
+                  - tripId: SE1A-2026-10-25
+                    date: "2026-10-25"
+                    from: { index: 0, name: Hà Nội, departureTime: "06:00" }
+                    to: { index: 4, name: Vinh, arrivalTime: "11:30" }
+                    stations:
+                      - { index: 0, name: Hà Nội, arrivalTime: null, departureTime: "06:00" }
+                      - { index: 1, name: Phủ Lý, arrivalTime: "06:40", departureTime: "06:42" }
+                      - { index: 2, name: Ninh Bình, arrivalTime: "07:38", departureTime: "07:40" }
+                      - { index: 3, name: Thanh Hóa, arrivalTime: "09:12", departureTime: "09:15" }
+                      - { index: 4, name: Vinh, arrivalTime: "11:30", departureTime: null }
+        "400":
+          description: >-
+            Tham số thiếu hoặc sai định dạng, tên ga không tồn tại, hoặc ga đi trùng ga đến.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                sameStation:
+                  value:
+                    error:
+                      code: VALIDATION_ERROR
+                      message: Ga xuất phát và ga đích phải khác nhau
+                unknownStation:
+                  value:
+                    error:
+                      code: VALIDATION_ERROR
+                      message: Tên ga xuất phát "Sài Gòn" không hợp lệ
+        "429":
+          $ref: "#/components/responses/GlobalRateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /trips/{tripId}/seats:
+    get:
+      operationId: getTripSeats
+      tags: [Ghế]
+      summary: Tình trạng ghế của chuyến theo chặng
+      description: >-
+        Với mỗi ghế, cho biết có thể đặt ở chặng `from → to` hay không. `from`/`to` là **chỉ số ga của chuyến**
+        (lấy từ `GET /trips`), mặc định `0 → 4` (cả hành trình).
+        Dữ liệu được cache tối đa vài giây nên có thể trễ nhẹ so với thực tế; ghế vẫn được kiểm tra lại nguyên tử
+        khi đặt vé.
+        Nếu `tripId` không tồn tại, hiện API vẫn trả 200 với `seats` rỗng.
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/TripId"
+        - name: from
+          in: query
+          required: false
+          description: Chỉ số ga xuất phát, 0..3.
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 3
+            default: 0
+        - name: to
+          in: query
+          required: false
+          description: Chỉ số ga đến, 1..4 và phải lớn hơn `from`.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 4
+            default: 4
+      responses:
+        "200":
+          description: Danh sách ghế.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeatsResponse"
+              example:
+                data:
+                  tripId: SE1A-2026-10-25
+                  fromIndex: 0
+                  toIndex: 2
+                  requestedMask: 3
+                  seats:
+                    - { seatNumber: 1, available: true }
+                    - { seatNumber: 2, available: false }
+        "400":
+          description: Query không hợp lệ (ngoài khoảng cho phép, không phải số, hoặc `to` ≤ `from`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: VALIDATION_ERROR
+                  message: to phải lớn hơn from
+        "429":
+          $ref: "#/components/responses/GlobalRateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /bookings:
+    post:
+      operationId: createBooking
+      tags: [Vé]
+      summary: Đặt vé
+      description: >-
+        Đặt một ghế cho chặng `fromIndex → toIndex`. Việc giữ chỗ là **nguyên tử**: chỉ thành công nếu mọi chặng
+        cần dùng đang trống trên ghế đó. Mọi booking thành công có `status: CONFIRMED`.
+
+        **Idempotency**: gửi header `Idempotency-Key` để retry an toàn. Cùng key + cùng nội dung → trả lại vé cũ
+        (`replayed: true`, header `Idempotency-Replayed: true`). Cùng key nhưng khác nội dung → 409
+        `IDEMPOTENCY_CONFLICT`. Key được tính riêng cho từng người dùng. Với bản replay, đối tượng `booking`
+        chỉ đảm bảo có các trường định danh vé (không đảm bảo `from`/`to`).
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBookingRequest"
+            example:
+              tripId: SE1A-2026-10-25
+              seatNumber: 5
+              fromIndex: 0
+              toIndex: 2
+      responses:
+        "201":
+          description: Đặt vé thành công (hoặc replay vé đã đặt trước đó với cùng Idempotency-Key).
+          headers:
+            Idempotency-Replayed:
+              description: '`"true"` nếu response là replay của lần đặt trước, ngược lại `"false"`.'
+              schema:
+                type: string
+                enum: ["true", "false"]
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateBookingResponse"
+              example:
+                data:
+                  booking:
+                    bookingId: d7a3b8f2-9c1e-4f6a-b2d5-8e3c7a9f1d4b
+                    tripId: SE1A-2026-10-25
+                    seatNumber: 5
+                    fromIndex: 0
+                    toIndex: 2
+                    segmentMask: 3
+                    from: { index: 0, name: Hà Nội, departureTime: "06:00" }
+                    to: { index: 2, name: Ninh Bình, arrivalTime: "07:38" }
+                    status: CONFIRMED
+                  replayed: false
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: Ghế đã có người đặt ở chặng này / ghế hoặc chuyến không tồn tại, hoặc Idempotency-Key bị dùng cho nội dung khác.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                segmentConflict:
+                  value:
+                    error:
+                      code: SEGMENT_CONFLICT
+                      message: Ghế số 5 đã có người đặt ở chặng này hoặc không tồn tại!
+                idempotencyConflict:
+                  value:
+                    error:
+                      code: IDEMPOTENCY_CONFLICT
+                      message: Idempotency-Key này đã được dùng cho một thông tin đặt vé khác!
+        "429":
+          $ref: "#/components/responses/GlobalRateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /bookings/me:
+    get:
+      operationId: getMyBookings
+      tags: [Vé]
+      summary: Danh sách vé của tôi
+      description: Trả về mọi vé của người dùng hiện tại, mới đặt nhất xếp trước. Không phân trang.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Danh sách vé (có thể rỗng).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MyBookingsResponse"
+              example:
+                data:
+                  - bookingId: d7a3b8f2-9c1e-4f6a-b2d5-8e3c7a9f1d4b
+                    tripId: SE1A-2026-10-25
+                    seatNumber: 5
+                    fromIndex: 0
+                    toIndex: 2
+                    from: { index: 0, name: Hà Nội, departureTime: "06:00" }
+                    to: { index: 2, name: Ninh Bình, arrivalTime: "07:38" }
+                    createdAt: "2026-10-23T05:20:03.571Z"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/GlobalRateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /bookings/{bookingId}:
+    get:
+      operationId: getBookingById
+      tags: [Vé]
+      summary: Chi tiết một vé
+      description: Chỉ chủ vé mới xem được. Vé của người khác trả 404 (không tiết lộ sự tồn tại).
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/BookingId"
+      responses:
+        "200":
+          description: Thông tin vé.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingDetailResponse"
+              example:
+                data:
+                  bookingId: d7a3b8f2-9c1e-4f6a-b2d5-8e3c7a9f1d4b
+                  tripId: SE1A-2026-10-25
+                  seatNumber: 5
+                  fromIndex: 0
+                  toIndex: 2
+                  segmentMask: 3
+                  from: { index: 0, name: Hà Nội, departureTime: "06:00" }
+                  to: { index: 2, name: Ninh Bình, arrivalTime: "07:38" }
+                  createdAt: "2026-10-23T05:20:03.571Z"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Vé không tồn tại hoặc không thuộc về người dùng hiện tại.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: NOT_FOUND
+                  message: Vé không tồn tại hoặc bạn không có quyền xem vé này!
+        "429":
+          $ref: "#/components/responses/GlobalRateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      operationId: cancelBooking
+      tags: [Vé]
+      summary: Hủy vé
+      description: >-
+        Hủy vé và nhả các chặng đã giữ để người khác đặt được. Chỉ chủ vé mới hủy được.
+        Vé bị xóa hẳn (không có trạng thái CANCELLED); sau khi hủy, `GET` cùng `bookingId` sẽ trả 404.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/BookingId"
+      responses:
+        "200":
+          description: Hủy vé thành công.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteBookingResponse"
+              example:
+                data:
+                  bookingId: d7a3b8f2-9c1e-4f6a-b2d5-8e3c7a9f1d4b
+                  message: Đã hủy vé thành công!
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Vé không tồn tại hoặc không thuộc về người dùng hiện tại.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: NOT_FOUND
+                  message: Vé không tồn tại hoặc bạn không có quyền hủy vé này!
+        "409":
+          description: Hủy thất bại (thường do xung đột khi hai yêu cầu hủy cùng một vé đồng thời). Có thể thử lại.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: DELETE_FAILED
+                  message: Hủy vé thất bại, vui lòng thử lại!
+        "429":
+          $ref: "#/components/responses/GlobalRateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Access token lấy từ `POST /auth/login` hoặc `POST /auth/refresh`.
+
+  parameters:
+    TripId:
+      name: tripId
+      in: path
+      required: true
+      description: Mã chuyến, dạng `<mã tàu>-<YYYY-MM-DD>`.
+      schema:
+        type: string
+        minLength: 1
+      example: SE1A-2026-10-25
+    BookingId:
+      name: bookingId
+      in: path
+      required: true
+      description: Mã vé (UUID).
+      schema:
+        type: string
+        format: uuid
+      example: d7a3b8f2-9c1e-4f6a-b2d5-8e3c7a9f1d4b
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: >-
+        Chuỗi duy nhất cho mỗi *ý định* đặt vé (khuyến nghị UUID v4). Retry cùng một ý định phải dùng lại đúng key đó.
+      schema:
+        type: string
+        minLength: 1
+      example: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+
+  responses:
+    ValidationError:
+      description: Dữ liệu gửi lên không hợp lệ. `message` là lỗi đầu tiên tìm thấy.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              code: VALIDATION_ERROR
+              message: "Invalid input: expected string, received undefined"
+    Unauthorized:
+      description: Thiếu, sai định dạng, sai chữ ký hoặc hết hạn access token.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            missing:
+              summary: Không có header Bearer
+              value:
+                error:
+                  code: UNAUTHORIZED
+                  message: Bạn cần đăng nhập để thực hiện thao tác này!
+            expired:
+              summary: Access token hết hạn → gọi /auth/refresh
+              value:
+                error:
+                  code: TOKEN_EXPIRED
+                  message: Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!
+            invalid:
+              summary: Access token sai
+              value:
+                error:
+                  code: INVALID_TOKEN
+                  message: Token không hợp lệ!
+    AuthRateLimited:
+      description: Vượt 20 request/phút/IP trên nhóm endpoint xác thực.
+      headers:
+        RateLimit-Limit: { $ref: "#/components/headers/RateLimitLimit" }
+        RateLimit-Remaining: { $ref: "#/components/headers/RateLimitRemaining" }
+        RateLimit-Reset: { $ref: "#/components/headers/RateLimitReset" }
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              code: TOO_MANY_REQUESTS
+              message: Bạn thao tác quá nhanh, vui lòng thử lại sau
+    GlobalRateLimited:
+      description: >-
+        Vượt giới hạn toàn cục theo IP. Lưu ý: thân response hiện là **văn bản thuần** do thư viện rate-limit sinh ra,
+        không phải JSON theo chuẩn lỗi của API.
+      headers:
+        RateLimit-Limit: { $ref: "#/components/headers/RateLimitLimit" }
+        RateLimit-Remaining: { $ref: "#/components/headers/RateLimitRemaining" }
+        RateLimit-Reset: { $ref: "#/components/headers/RateLimitReset" }
+      content:
+        text/plain:
+          schema:
+            type: string
+          example: Too many requests, please try again later.
+    InternalServerError:
+      description: Lỗi máy chủ nội bộ.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              code: INTERNAL_ERROR
+              message: Lỗi máy chủ nội bộ
+
+  headers:
+    RateLimitLimit:
+      description: Số request tối đa trong cửa sổ hiện tại.
+      schema:
+        type: integer
+    RateLimitRemaining:
+      description: Số request còn lại trong cửa sổ hiện tại.
+      schema:
+        type: integer
+    RateLimitReset:
+      description: Số giây còn lại đến khi cửa sổ được reset.
+      schema:
+        type: integer
+
+  schemas:
+    # ---------- Chung ----------
+    ErrorDetail:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          description: >-
+            Mã lỗi ổn định để client xử lý. Các mã hiện có: `VALIDATION_ERROR`, `UNAUTHORIZED`, `TOKEN_EXPIRED`,
+            `INVALID_TOKEN`, `INVALID`, `EMAIL_TAKEN`, `NO_REFRESH_TOKEN`, `INVALID_REFRESH_TOKEN`,
+            `REFRESH_TOKEN_MISMATCH`, `SEGMENT_CONFLICT`, `IDEMPOTENCY_CONFLICT`, `NOT_FOUND`, `DELETE_FAILED`,
+            `TOO_MANY_REQUESTS`, `INTERNAL_ERROR`.
+          example: VALIDATION_ERROR
+        message:
+          type: string
+          description: Thông báo cho người dùng (tiếng Việt, trừ một số lỗi validate mặc định của thư viện).
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          $ref: "#/components/schemas/ErrorDetail"
+    HealthLiveResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+    HealthReadyResponse:
+      type: object
+      required: [status, database]
+      properties:
+        status:
+          type: string
+          enum: [ok, not_ready]
+        database:
+          type: string
+          enum: [ready, not_ready]
+    Time:
+      type: string
+      nullable: true
+      description: Giờ `HH:mm` (giờ địa phương). `null` nếu không áp dụng (ga đầu không có giờ đến, ga cuối không có giờ đi).
+      pattern: '^\d{2}:\d{2}$'
+      example: "06:00"
+
+    # ---------- Xác thực ----------
+    AuthRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          description: Được trim; lưu và so khớp không phân biệt hoa/thường.
+          example: nguyenvana@gmail.com
+        password:
+          type: string
+          format: password
+          minLength: 6
+          maxLength: 72
+          description: Tối đa 72 ký tự (giới hạn của bcrypt là 72 **byte**, nên mật khẩu nhiều ký tự có dấu có thể bị cắt).
+          example: SecurePass123!
+    RefreshTokenRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+          description: Refresh token nhận được từ `POST /auth/login`.
+    UserData:
+      type: object
+      required: [userId, email]
+      properties:
+        userId:
+          type: string
+          description: MongoDB ObjectId của người dùng.
+          example: 66f57871b69f64a132fae201
+        email:
+          type: string
+          format: email
+          example: nguyenvana@gmail.com
+    RegisterResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/UserData"
+    TokenPair:
+      type: object
+      required: [accessToken, refreshToken]
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token (mặc định sống 15 phút).
+        refreshToken:
+          type: string
+          description: JWT refresh token (mặc định sống 7 ngày).
+    LoginResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/TokenPair"
+    RefreshResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [accessToken]
+          properties:
+            accessToken:
+              type: string
+              description: Access token mới.
+    LogoutResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [message]
+          properties:
+            message:
+              type: string
+              example: Đã đăng xuất thành công!
+
+    # ---------- Ga & chuyến ----------
+    Station:
+      type: object
+      required: [index, name]
+      properties:
+        index:
+          type: integer
+          minimum: 0
+          maximum: 4
+        name:
+          type: string
+          example: Hà Nội
+    StationsResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Station"
+    TripStop:
+      type: object
+      description: Một điểm dừng trong lịch trình của chuyến (index theo chiều đi của chính chuyến đó).
+      required: [index, name]
+      properties:
+        index:
+          type: integer
+          minimum: 0
+          maximum: 4
+        name:
+          type: string
+        arrivalTime:
+          $ref: "#/components/schemas/Time"
+        departureTime:
+          $ref: "#/components/schemas/Time"
+    SegmentFrom:
+      type: object
+      description: Ga xuất phát của chặng. `name`/`departureTime` có thể `null` nếu không tra được trong lịch trình chuyến.
+      required: [index, name, departureTime]
+      properties:
+        index:
+          type: integer
+        name:
+          type: string
+          nullable: true
+          example: Hà Nội
+        departureTime:
+          $ref: "#/components/schemas/Time"
+    SegmentTo:
+      type: object
+      description: Ga đến của chặng. `name`/`arrivalTime` có thể `null` nếu không tra được trong lịch trình chuyến.
+      required: [index, name, arrivalTime]
+      properties:
+        index:
+          type: integer
+        name:
+          type: string
+          nullable: true
+          example: Vinh
+        arrivalTime:
+          $ref: "#/components/schemas/Time"
+    TripSearchResult:
+      type: object
+      required: [tripId, date, from, to, stations]
+      properties:
+        tripId:
+          type: string
+          example: SE1A-2026-10-25
+        date:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+          example: "2026-10-25"
+        from:
+          $ref: "#/components/schemas/SegmentFrom"
+        to:
+          $ref: "#/components/schemas/SegmentTo"
+        stations:
+          type: array
+          description: Toàn bộ lịch trình của chuyến.
+          items:
+            $ref: "#/components/schemas/TripStop"
+    TripSearchResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/TripSearchResult"
+
+    # ---------- Ghế ----------
+    SeatAvailability:
+      type: object
+      required: [seatNumber, available]
+      properties:
+        seatNumber:
+          type: integer
+          minimum: 1
+        available:
+          type: boolean
+          description: Ghế còn trống ở **toàn bộ** các chặng được yêu cầu.
+    SeatsData:
+      type: object
+      required: [tripId, fromIndex, toIndex, requestedMask, seats]
+      properties:
+        tripId:
+          type: string
+        fromIndex:
+          type: integer
+        toIndex:
+          type: integer
+        requestedMask:
+          type: integer
+          minimum: 1
+          maximum: 15
+          description: Bit mask của các chặng được yêu cầu (xem mô tả API).
+        seats:
+          type: array
+          items:
+            $ref: "#/components/schemas/SeatAvailability"
+    SeatsResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/SeatsData"
+
+    # ---------- Vé ----------
+    CreateBookingRequest:
+      type: object
+      description: '`toIndex` phải lớn hơn `fromIndex`. Các số có thể gửi dạng chuỗi số (ví dụ `"5"`) và sẽ được ép kiểu.'
+      required: [tripId, seatNumber, fromIndex, toIndex]
+      properties:
+        tripId:
+          type: string
+          minLength: 1
+          maxLength: 120
+          example: SE1A-2026-10-25
+        seatNumber:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          example: 5
+        fromIndex:
+          type: integer
+          minimum: 0
+          maximum: 3
+          example: 0
+        toIndex:
+          type: integer
+          minimum: 1
+          maximum: 4
+          example: 2
+    Booking:
+      type: object
+      required: [bookingId, tripId, seatNumber, fromIndex, toIndex, segmentMask, status]
+      properties:
+        bookingId:
+          type: string
+          format: uuid
+        tripId:
+          type: string
+        seatNumber:
+          type: integer
+        fromIndex:
+          type: integer
+        toIndex:
+          type: integer
+        segmentMask:
+          type: integer
+          minimum: 1
+          maximum: 15
+        from:
+          $ref: "#/components/schemas/SegmentFrom"
+        to:
+          $ref: "#/components/schemas/SegmentTo"
+        status:
+          type: string
+          enum: [CONFIRMED]
+    CreateBookingData:
+      type: object
+      required: [booking, replayed]
+      properties:
+        booking:
+          $ref: "#/components/schemas/Booking"
+        replayed:
+          type: boolean
+          description: '`true` nếu đây là kết quả replay của lần đặt trước cùng Idempotency-Key.'
+    CreateBookingResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/CreateBookingData"
+    BookingSummary:
+      type: object
+      description: Một vé trong danh sách `GET /bookings/me`.
+      required: [bookingId, tripId, seatNumber, fromIndex, toIndex, from, to, createdAt]
+      properties:
+        bookingId:
+          type: string
+          format: uuid
+        tripId:
+          type: string
+        seatNumber:
+          type: integer
+        fromIndex:
+          type: integer
+        toIndex:
+          type: integer
+        from:
+          $ref: "#/components/schemas/SegmentFrom"
+        to:
+          $ref: "#/components/schemas/SegmentTo"
+        createdAt:
+          type: string
+          format: date-time
+    MyBookingsResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/BookingSummary"
+    BookingDetail:
+      allOf:
+        - $ref: "#/components/schemas/BookingSummary"
+        - type: object
+          required: [segmentMask]
+          properties:
+            segmentMask:
+              type: integer
+              minimum: 1
+              maximum: 15
+    BookingDetailResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/BookingDetail"
+    DeleteBookingData:
+      type: object
+      required: [bookingId, message]
+      properties:
+        bookingId:
+          type: string
+          format: uuid
+        message:
+          type: string
+          example: Đã hủy vé thành công!
+    DeleteBookingResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/DeleteBookingData"
