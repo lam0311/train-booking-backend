@@ -1,9 +1,12 @@
 {
-  "rewrites": [
+  "redirects": [
     {
       "source": "/api-docs",
-      "destination": "https://train-booking-backend-3ri7.onrender.com/api-docs/"
-    },
+      "destination": "/api-docs/",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
     {
       "source": "/api-docs/",
       "destination": "https://train-booking-backend-3ri7.onrender.com/api-docs/"
@@ -13,16 +16,12 @@
       "destination": "https://train-booking-backend-3ri7.onrender.com/api-docs/:path*"
     },
     {
-      "source": "/swagger-ui:path*",
-      "destination": "https://train-booking-backend-3ri7.onrender.com/api-docs/swagger-ui:path*"
+      "source": "/swagger-ui(.*)",
+      "destination": "https://train-booking-backend-3ri7.onrender.com/api-docs/swagger-ui$1"
     },
     {
-      "source": "/favicon-32x32.png",
-      "destination": "https://train-booking-backend-3ri7.onrender.com/api-docs/favicon-32x32.png"
-    },
-    {
-      "source": "/favicon-16x16.png",
-      "destination": "https://train-booking-backend-3ri7.onrender.com/api-docs/favicon-16x16.png"
+      "source": "/favicon-:size*.png",
+      "destination": "https://train-booking-backend-3ri7.onrender.com/api-docs/favicon-:size*.png"
     },
     {
       "source": "/openapi.json",
