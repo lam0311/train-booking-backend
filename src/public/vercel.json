@@ -1,0 +1,25 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/api-docs",
+      "destination": "https://train-booking-backend-3ri7.onrender.com/api-docs"
+    },
+    {
+      "source": "/api-docs/:match*",
+      "destination": "https://train-booking-backend-3ri7.onrender.com/api-docs/:match*"
+    },
+    {
+      "source": "/openapi.json",
+      "destination": "https://train-booking-backend-3ri7.onrender.com/openapi.json"
+    },
+    {
+      "source": "/api/:match*",
+      "destination": "https://train-booking-backend-3ri7.onrender.com/api/:match*"
+    },
+    {
+      "source": "/health/:match*",
+      "destination": "https://train-booking-backend-3ri7.onrender.com/health/:match*"
+    }
+  ]
+}
