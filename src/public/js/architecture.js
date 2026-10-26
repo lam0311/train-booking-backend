@@ -173,13 +173,13 @@ class BookingController {
         id: 4,
         code: "04",
         name: "Domain Layer // Core",
-        tag: "DOMAIN HEART (O(1))",
+        tag: "TẦNG NGHIỆP VỤ CỐT LÕI",
         title: "TẦNG 04: DOMAIN LAYER (NGHIỆP VỤ CỐT LÕI // CORE)",
-        subtitle: "Trái tim của hệ thống: Đại số Boolean & Thuật toán Bitmask thuần túy",
-        role: "Trái tim bất biến của phần mềm (The Core Heart). Chuyển bài toán phân bổ ghế liên trạm thành các phép toán đại số Boolean trên thanh ghi ALU. Tầng này thuần khiết (Pure Functions, Zero External Dependencies), kiểm tra trùng chặng trong đúng 1 chu kỳ xung nhịp CPU O(1).",
+        subtitle: "Trung tâm hệ thống: Thuật toán Bitmask xử lý phân bổ chặng vé",
+        role: "Chuyển bài toán phân bổ ghế liên trạm thành các phép toán nhị phân trên mặt nạ bit. Tầng này thuần khiết (Pure Functions, không phụ thuộc thư viện ngoài), thực hiện kiểm tra và tạo mặt nạ chặng tức thì.",
         dependencyRule: "Độc lập tuyệt đối! Không phụ thuộc vào bất kỳ tầng nào khác (Zero Outward Dependencies). Mọi tầng ngoài đều phụ thuộc vào Domain Core.",
         invariants: "Toàn bộ 4 phân đoạn hành trình nằm gọn trong 4 bit (giá trị 0 đến 15). Không tồn tại trạng thái bitmask âm hoặc vượt quá 15.",
-        tech: "Bitwise Operators (<<, &, ^, |), CPU ALU Hardware Register Math, IEEE-754.",
+        tech: "Bitwise Operators (<<, &, ^, |), Xử lý bit nhị phân, Pure Functions.",
         inputs: "Chỉ số trạm dừng: fromIndex (0..3), toIndex (1..4), occupiedMask (0..15).",
         outputs: "segmentMask (0..15), clearMask (0..15), hasConflict (boolean true/false).",
         files: [
@@ -205,7 +205,7 @@ const buildSegmentMask = (fromIndex, toIndex) => {
 };
 
 /**
- * Kiểm tra xung đột logic chặng: Phép tính AND bitwise O(1)
+ * Kiểm tra xung đột logic chặng: Phép toán AND bitwise tức thì
  */
 const hasConflict = (mask1, mask2) => {
     return (mask1 & mask2) !== 0;
@@ -227,7 +227,7 @@ module.exports = { buildSegmentMask, hasConflict, buildClearMask };`
         tag: "OUTBOUND ADAPTER",
         title: "TẦNG 05: INFRASTRUCTURE LAYER (HẠ TẦNG & LƯU TRỮ)",
         subtitle: "Cơ sở dữ liệu MongoDB $bitsAllClear, Redis L2, RAM L1",
-        role: "Driven Adapter: Hiện thực hóa Repository Interface do Application yêu cầu. Ứng dụng toán tử nguyên tử $bitsAllClear và $bit: { or } của MongoDB để biến Database thành ALU phần cứng nguyên tử, ngăn chặn Race Condition không cần khóa phân tán. Quản lý Cache 2 tầng và Request Coalescing.",
+        role: "Hiện thực hóa Repository Interface do Application yêu cầu. Sử dụng toán tử nguyên tử $bitsAllClear và $bit: { or } của MongoDB để xử lý đặt vé đồng thời, loại bỏ triệt để Race Condition mà không cần cơ chế khóa phân tán phức tạp. Quản lý Cache 2 tầng và Request Coalescing.",
         dependencyRule: "Hiện thực Interface Repository do Application định nghĩa. Mọi chi tiết về MongoDB, Redis, Mongoose đều cô lập tại đây, dễ dàng thay thế mà không sửa code Domain/Application.",
         invariants: "Chỉ cập nhật thành công nếu tất cả bit trong segmentMask đang ở trạng thái 0 ($bitsAllClear Atomic Condition).",
         tech: "MongoDB Driver (Mongoose), Redis (ioredis), LocalCache Map (RAM L1 2s), jsonwebtoken, bcryptjs.",
@@ -331,13 +331,13 @@ status: "ALLOCATING"`
     },
     {
         layerId: 4,
-        title: "BƯỚC 4/6: DOMAIN THỰC THI THUẬT TOÁN BITMASK O(1)",
-        desc: "Hàm thuần túy buildSegmentMask(0, 2) thực thi ((1 << 2) - 1) << 0 = 3 (0b0011) trong đúng 1 chu kỳ xung nhịp ALU vi xử lý, không có độ trễ I/O.",
-        packetType: "ALU REGISTER HARDWARE COMPUTATION",
+        title: "BƯỚC 4/6: DOMAIN THỰC THI THUẬT TOÁN BITMASK",
+        desc: "Hàm thuần túy buildSegmentMask(0, 2) thực thi ((1 << 2) - 1) << 0 = 3 (0b0011) bằng phép toán bit tức thì, không có độ trễ I/O.",
+        packetType: "DOMAIN BITMASK COMPUTATION",
         packetData: `count = toIndex (2) - fromIndex (0) = 2
 mask = ((1 << 2) - 1) << 0 = 3 (Nhị phân: 0b0011)
 Ý nghĩa: Chiếm giữ Phân đoạn 0 (Hà Nội -> Nam Định) và Phân đoạn 1 (Nam Định -> Vinh)
-Thời gian thực thi: 1 chu kỳ ALU (O(1))`
+Thời gian tính toán: Tức thì (Toán tử bit)`
     },
     {
         layerId: 5,

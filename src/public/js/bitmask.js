@@ -138,8 +138,8 @@ function updateMask() {
             </div>
 
             <div class="p-3 rounded-lg bg-slate-900 border border-slate-800">
-                <div class="text-slate-400 text-[11px] mb-1 font-semibold text-cyan-400">BƯỚC 4: GHI THANH GHI</div>
-                <div class="text-slate-300">REG_ACC = segmentMask</div>
+                <div class="text-slate-400 text-[11px] mb-1 font-semibold text-cyan-400">BƯỚC 4: KẾT QUẢ MẶT NẠ CHẶNG</div>
+                <div class="text-slate-300">resultMask = segmentMask</div>
                 <div class="text-cyan-400 mt-1">Giá trị cuối: 0x${mask.toString(16).toUpperCase()}</div>
             </div>
         </div>

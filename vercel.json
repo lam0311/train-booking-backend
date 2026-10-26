@@ -1,0 +1,17 @@
+{
+  "outputDirectory": "src/public",
+  "rewrites": [
+    {
+      "source": "/health/:match*",
+      "destination": "https://train-booking-backend-3ri7.onrender.com/health/:match*"
+    },
+    {
+      "source": "/api-docs",
+      "destination": "https://train-booking-backend-3ri7.onrender.com/api-docs"
+    },
+    {
+      "source": "/openapi.json",
+      "destination": "https://train-booking-backend-3ri7.onrender.com/openapi.json"
+    }
+  ]
+}

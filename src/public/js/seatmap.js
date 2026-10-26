@@ -289,10 +289,10 @@ async function simulateLiveTrainJourney() {
 
     const stationsList = [
         { idx: 0, name: "Hà Nội", action: "Đoàn tàu SE1 xuất phát từ Ga Hà Nội. Khách chặng 0 đã ổn định chỗ ngồi." },
-        { idx: 1, name: "Nam Định", action: "Đến Ga Nam Định. Khách chặng HN - NĐ xuống tàu (nhả bit), khách chặng mới lên tàu." },
-        { idx: 2, name: "Vinh", action: "Đến Ga Vinh. Khách chặng NĐ - Vinh xuống tàu. Ghế được giải phóng tiếp tục đón khách mới." },
-        { idx: 3, name: "Huế", action: "Đến Ga Huế. Khách chặng Vinh - Huế hoàn tất hành trình." },
-        { idx: 4, name: "Đà Nẵng", action: "Cập bến Ga Đà Nẵng (Ga cuối). Toàn bộ ghế giải phóng về trạng thái 0b0000." }
+        { idx: 1, name: "Phủ Lý", action: "Đến Ga Phủ Lý. Khách chặng HN - PL xuống tàu (nhả bit), khách chặng mới lên tàu." },
+        { idx: 2, name: "Ninh Bình", action: "Đến Ga Ninh Bình. Khách chặng PL - NB xuống tàu. Ghế được giải phóng tiếp tục đón khách mới." },
+        { idx: 3, name: "Thanh Hóa", action: "Đến Ga Thanh Hóa. Khách chặng NB - TH hoàn tất hành trình." },
+        { idx: 4, name: "Vinh", action: "Cập bến Ga Vinh (Ga cuối). Toàn bộ ghế giải phóng về trạng thái 0b0000." }
     ];
 
     for (let i = 0; i < stationsList.length; i++) {
@@ -325,7 +325,7 @@ async function simulateLiveTrainJourney() {
     if (statusMsg) {
         statusMsg.innerHTML = `
             <div class="text-emerald-400 font-mono text-xs font-bold">
-                HOÀN TẤT: Đoàn tàu SE1 đã đến Đà Nẵng. Tất cả ghế đã giải phóng xong.
+                HOÀN TẤT: Đoàn tàu SE1 đã đến Ga Vinh. Tất cả ghế đã giải phóng xong.
             </div>
         `;
     }
@@ -342,4 +342,63 @@ function updateTrainCarriagePosition(stationIdx) {
     if (!trainIcon) return;
     const percentages = [0, 25, 50, 75, 100];
     trainIcon.style.left = `${percentages[stationIdx]}%`;
+}
+
+async function fetchLiveSeatsFromDatabase() {
+    const btn = document.getElementById("fetchLiveSeatsBtn");
+    const statusMsg = document.getElementById("trainJourneyStatusMsg");
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span> ĐANG TẢI...';
+    }
+
+    try {
+        const url = `/api/v1/trips/SE1-2026/seats?from=${currentFilterFrom}&to=${currentFilterTo}`;
+        const res = await fetch(url);
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+
+        const json = await res.json();
+        const seatsData = json.data?.seats || [];
+
+        if (seatsData.length > 0) {
+            seatsData.forEach(item => {
+                const target = coachSeats.find(s => s.id === item.seatNumber);
+                if (target) {
+                    target.occupiedMask = item.occupiedMask;
+                }
+            });
+
+            renderModernCoach();
+            updateCoachStats();
+
+            if (statusMsg) {
+                statusMsg.innerHTML = `
+                    <div class="text-emerald-400 font-mono text-xs font-bold flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        <span>ĐÃ ĐỒNG BỘ THÀNH CÔNG: Tải trạng thái 40 ghế thực tế từ MongoDB (Chuyến SE1-2026, Mask: ${json.data?.requestedMask || '--'}).</span>
+                    </div>
+                `;
+            }
+        }
+    } catch (err) {
+        if (statusMsg) {
+            statusMsg.innerHTML = `
+                <div class="text-amber-400 font-mono text-xs flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                    <span>Không kết nối được Backend (${err.message}). Hệ thống đang dùng dữ liệu mô phỏng Offline.</span>
+                </div>
+            `;
+        }
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `
+                <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+                TẢI TỪ DATABASE (SE1-2026)
+            `;
+        }
+    }
 }
