@@ -1,6 +1,13 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": null,
   "outputDirectory": "src/public",
+  "cleanUrls": true,
   "rewrites": [
+    {
+      "source": "/api/:match*",
+      "destination": "https://train-booking-backend-3ri7.onrender.com/api/:match*"
+    },
     {
       "source": "/health/:match*",
       "destination": "https://train-booking-backend-3ri7.onrender.com/health/:match*"
