@@ -1,139 +1,140 @@
 # Train Booking Backend
 
-RESTful API Backend for a Train Booking System, built with Node.js and Express. The service provides the backend foundation for train reservation workflows, including API routing, database connectivity, authentication-related configuration, and API documentation.
+Backend RESTful API cho hệ thống đặt vé tàu, được xây dựng bằng Node.js và Express. Dịch vụ này cung cấp nền tảng backend cho các quy trình đặt chỗ tàu, bao gồm định tuyến API, kết nối cơ sở dữ liệu, cấu hình liên quan đến xác thực và tài liệu API.
 
-The project is organized into modules and shared components to support maintainability, separation of concerns, and easier deployment with Docker.
-
----
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Technology Stack](#technology-stack)
-- [System Architecture](#system-architecture)
-- [Project Structure](#project-structure)
-- [Configuration](#configuration)
-- [Getting Started](#getting-started)
-- [Docker Deployment](#docker-deployment)
-- [API Documentation](#api-documentation)
-- [Health Checks](#health-checks)
-- [Development](#development)
-- [Troubleshooting](#troubleshooting)
+Dự án được tổ chức thành các module và thành phần dùng chung nhằm dễ bảo trì, tách biệt trách nhiệm và triển khai thuận tiện hơn với Docker.
 
 ---
 
-## Overview
+## Mục lục
 
-Train Booking Backend is a RESTful API service designed to support a train booking application.
-
-The backend acts as the intermediary between clients and the underlying data services. It receives HTTP requests, processes application logic, interacts with the database, and returns structured responses.
-
-The project includes:
-
-- An Express-based HTTP server.
-- A modular source-code structure.
-- MongoDB connectivity through Mongoose.
-- Environment-based configuration.
-- API documentation through Swagger/OpenAPI.
-- Health-check endpoints for service monitoring.
-- Docker support for containerized deployment.
-
-> Note: The exact business capabilities and API endpoints should be verified against the current implementation and API specification.
+- [Tổng quan](#tổng-quan)
+- [Công nghệ sử dụng](#công-nghệ-sử-dụng)
+- [Kiến trúc hệ thống](#kiến-trúc-hệ-thống)
+- [Cấu trúc dự án](#cấu-trúc-dự-án)
+- [Cấu hình](#cấu-hình)
+- [Bắt đầu](#bắt-đầu)
+- [Triển khai với Docker](#triển-khai-với-docker)
+- [Tài liệu API](#tài-liệu-api)
+- [Kiểm tra sức khỏe dịch vụ](#kiểm-tra-sức-khỏe-dịch-vụ)
+- [Phát triển](#phát-triển)
+- [Xử lý sự cố](#xử-lý-sự-cố)
+- [Giấy phép](#giấy-phép)
 
 ---
 
-## Technology Stack
+## Tổng quan
 
-| Technology | Purpose |
+Train Booking Backend là một dịch vụ RESTful API được thiết kế để hỗ trợ ứng dụng đặt vé tàu.
+
+Backend đóng vai trò trung gian giữa client và các dịch vụ dữ liệu phía dưới. Nó nhận các HTTP request, xử lý logic nghiệp vụ, tương tác với cơ sở dữ liệu và trả về phản hồi có cấu trúc.
+
+Dự án bao gồm:
+
+- Một HTTP server dựa trên Express.
+- Cấu trúc mã nguồn theo module.
+- Kết nối MongoDB thông qua Mongoose.
+- Cấu hình dựa trên biến môi trường.
+- Tài liệu API thông qua Swagger/OpenAPI.
+- Các endpoint health-check để giám sát dịch vụ.
+- Hỗ trợ Docker để triển khai theo container.
+
+> Lưu ý: Các chức năng nghiệp vụ và endpoint API cụ thể cần được đối chiếu với mã nguồn hiện tại và đặc tả API.
+
+---
+
+## Công nghệ sử dụng
+
+| Công nghệ | Mục đích |
 |---|---|
-| Node.js | JavaScript runtime for the backend |
-| Express.js | HTTP server and API routing |
-| MongoDB | Document-oriented database |
-| Mongoose | MongoDB object modeling |
-| JWT | Token-based authentication support |
-| Redis / ioredis | Redis integration, where used by the application |
-| Swagger / OpenAPI | API documentation |
-| Docker | Application containerization |
-| Docker Compose | Container lifecycle and runtime configuration |
-| ESLint | Code quality and linting |
+| Node.js | Môi trường chạy JavaScript cho backend |
+| Express.js | HTTP server và định tuyến API |
+| MongoDB | Cơ sở dữ liệu hướng tài liệu (document-oriented) |
+| Mongoose | Mô hình hóa đối tượng cho MongoDB |
+| JWT | Hỗ trợ xác thực dựa trên token |
+| Redis / ioredis | Tích hợp Redis, nếu ứng dụng có sử dụng |
+| Swagger / OpenAPI | Tài liệu API |
+| Docker | Đóng gói ứng dụng bằng container |
+| Docker Compose | Quản lý vòng đời container và cấu hình runtime |
+| ESLint | Kiểm tra chất lượng mã nguồn |
 
 ---
 
-## System Architecture
+## Kiến trúc hệ thống
 
-The application is organized into separate modules and shared components.
+Ứng dụng được tổ chức thành các module riêng biệt và các thành phần dùng chung.
 
-### Main Components
+### Các thành phần chính
 
-- **Server Layer**: Starts the HTTP server and establishes the database connection.
-- **Application Layer**: Configures Express, middleware, API routes, health checks, and documentation.
-- **Modules**: Organize business-related functionality into separate areas.
-- **Configuration**: Contains configuration for database connections and other infrastructure.
-- **Shared Components**: Provide reusable utilities and common functionality across modules.
-- **Database Layer**: Uses MongoDB through Mongoose for data persistence.
+- **Server Layer**: Khởi động HTTP server và thiết lập kết nối cơ sở dữ liệu.
+- **Application Layer**: Cấu hình Express, middleware, các API route, health check và tài liệu.
+- **Modules**: Tổ chức các chức năng nghiệp vụ thành những phần riêng biệt.
+- **Configuration**: Chứa cấu hình kết nối cơ sở dữ liệu và hạ tầng khác.
+- **Shared Components**: Cung cấp các tiện ích và chức năng dùng chung giữa các module.
+- **Database Layer**: Sử dụng MongoDB thông qua Mongoose để lưu trữ dữ liệu.
 
-### Request Lifecycle
+### Vòng đời của một request
 
-A typical API request follows this flow:
+Một API request thông thường đi theo luồng sau:
 
-1. A client sends an HTTP request.
-2. Express receives the request and applies the configured middleware.
-3. The request is routed to the appropriate API handler.
-4. The application performs the required processing and database operations.
-5. The backend returns an HTTP response to the client.
+1. Client gửi một HTTP request.
+2. Express nhận request và áp dụng các middleware đã cấu hình.
+3. Request được định tuyến đến API handler phù hợp.
+4. Ứng dụng thực hiện xử lý cần thiết và các thao tác với cơ sở dữ liệu.
+5. Backend trả về HTTP response cho client.
 
-The exact processing layers depend on the implementation of each module.
+Các lớp xử lý cụ thể phụ thuộc vào cách triển khai của từng module.
 
 ---
 
-## Project Structure
+## Cấu trúc dự án
 
 ```text
 train-booking-backend/
 ├── src/
-│   ├── config/          # Application and infrastructure configuration
-│   ├── modules/         # Feature and business-related modules
-│   ├── public/          # Static assets served by the application
-│   ├── shared/          # Reusable components
-│   ├── app.js            # Express application configuration
-│   └── server.js         # Server entry point
+│   ├── config/          # Cấu hình ứng dụng và hạ tầng
+│   ├── modules/         # Các module chức năng và nghiệp vụ
+│   ├── public/          # Tài nguyên tĩnh do ứng dụng phục vụ
+│   ├── shared/          # Các thành phần dùng chung
+│   ├── app.js            # Cấu hình ứng dụng Express
+│   └── server.js         # Điểm khởi chạy server
 ├── scripts/
-│   └── seed.js           # Data seeding script
-├── documents/            # Project documents
-├── docker/               # Docker-related resources
-├── postman/              # API testing resources
-├── .env.example          # Example environment configuration
-├── .dockerignore         # Files excluded from Docker build context
-├── .gitignore             # Git ignore rules
-├── Dockerfile             # Docker image definition
-├── compose.yaml           # Docker Compose configuration
-├── package.json           # Dependencies and npm scripts
-├── package-lock.json      # Locked dependency versions
-├── openapi.json           # OpenAPI specification in JSON
-└── swagger.yaml           # Swagger/OpenAPI specification
+│   └── seed.js           # Script nạp dữ liệu mẫu
+├── documents/            # Tài liệu dự án
+├── docker/               # Tài nguyên liên quan đến Docker
+├── postman/              # Tài nguyên kiểm thử API
+├── .env.example          # Ví dụ cấu hình môi trường
+├── .dockerignore         # Các tệp bị loại khỏi Docker build context
+├── .gitignore             # Quy tắc bỏ qua của Git
+├── Dockerfile             # Định nghĩa Docker image
+├── compose.yaml           # Cấu hình Docker Compose
+├── package.json           # Dependencies và npm scripts
+├── package-lock.json      # Phiên bản dependencies đã khóa
+├── openapi.json           # Đặc tả OpenAPI dạng JSON
+└── swagger.yaml           # Đặc tả Swagger/OpenAPI
 ```
 
-Some files, including the Docker configuration, may differ depending on the current branch or deployment setup.
+Một số tệp, bao gồm cấu hình Docker, có thể khác nhau tùy theo nhánh hiện tại hoặc thiết lập triển khai.
 
 ---
 
-## Configuration
+## Cấu hình
 
-The application uses environment variables to configure its runtime and external services.
+Ứng dụng sử dụng biến môi trường để cấu hình runtime và các dịch vụ bên ngoài.
 
-Create a local `.env` file based on `.env.example`:
+Tạo tệp `.env` cục bộ dựa trên `.env.example`:
 
 ```bash
 cp .env.example .env
 ```
 
-On Windows PowerShell, use:
+Trên Windows PowerShell, dùng:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Configure the required values in `.env`:
+Cấu hình các giá trị cần thiết trong `.env`:
 
 ```dotenv
 PORT=5000
@@ -151,102 +152,102 @@ JWT_REFRESH_EXPIRES=7d
 REDIS_URL=your_redis_connection_string
 ```
 
-### Environment Variables
+### Biến môi trường
 
-| Variable | Description |
+| Biến | Mô tả |
 |---|---|
-| `PORT` | Port on which the backend listens |
-| `HOSTNAME` | Hostname configuration, if used by the application |
-| `MONGODB_URL` | MongoDB connection string |
-| `DB_MAX_POOL` | Maximum database connection pool size, if configured |
-| `DB_MIN_POOL` | Minimum database connection pool size, if configured |
-| `JWT_ACCESS_SECRET` | Secret used for access-token operations |
-| `JWT_REFRESH_SECRET` | Secret used for refresh-token operations |
-| `JWT_ACCESS_EXPIRES` | Access-token expiration setting |
-| `JWT_REFRESH_EXPIRES` | Refresh-token expiration setting |
-| `REDIS_URL` | Redis connection string, if Redis is enabled |
+| `PORT` | Cổng mà backend lắng nghe |
+| `HOSTNAME` | Cấu hình hostname, nếu ứng dụng có sử dụng |
+| `MONGODB_URL` | Chuỗi kết nối MongoDB |
+| `DB_MAX_POOL` | Kích thước tối đa của connection pool cơ sở dữ liệu, nếu được cấu hình |
+| `DB_MIN_POOL` | Kích thước tối thiểu của connection pool cơ sở dữ liệu, nếu được cấu hình |
+| `JWT_ACCESS_SECRET` | Khóa bí mật dùng cho các thao tác với access token |
+| `JWT_REFRESH_SECRET` | Khóa bí mật dùng cho các thao tác với refresh token |
+| `JWT_ACCESS_EXPIRES` | Thời hạn của access token |
+| `JWT_REFRESH_EXPIRES` | Thời hạn của refresh token |
+| `REDIS_URL` | Chuỗi kết nối Redis, nếu Redis được bật |
 
-Use valid credentials for the services required by the application. Redis configuration is only necessary if the current implementation initializes and uses Redis.
+Hãy sử dụng thông tin xác thực hợp lệ cho các dịch vụ mà ứng dụng yêu cầu. Cấu hình Redis chỉ cần thiết nếu triển khai hiện tại có khởi tạo và sử dụng Redis.
 
-**Security considerations:**
+**Lưu ý về bảo mật:**
 
-- Never commit `.env` or real credentials to version control.
-- Keep `.env.example` free of real secrets.
-- Use strong, independently generated JWT secrets.
-- Configure database network access and credentials appropriately.
-- Provide production secrets through the deployment environment or a secrets manager.
+- Không bao giờ commit `.env` hoặc thông tin xác thực thật lên hệ thống quản lý phiên bản.
+- Giữ `.env.example` không chứa bí mật thật.
+- Sử dụng các JWT secret mạnh và được tạo độc lập.
+- Cấu hình quyền truy cập mạng và thông tin xác thực của cơ sở dữ liệu một cách phù hợp.
+- Cung cấp các secret production thông qua môi trường triển khai hoặc một trình quản lý secret (secrets manager).
 
 ---
 
-## Getting Started
+## Bắt đầu
 
-### Prerequisites
+### Yêu cầu
 
-For local development, install:
+Để phát triển cục bộ, hãy cài đặt:
 
 - [Node.js](https://nodejs.org/)
 - npm
-- A MongoDB instance, such as [MongoDB Atlas](https://www.mongodb.com/atlas)
-- Redis, if required by the current application configuration
+- Một instance MongoDB, ví dụ [MongoDB Atlas](https://www.mongodb.com/atlas)
+- Redis, nếu cấu hình ứng dụng hiện tại yêu cầu
 
-### 1. Clone the Repository
+### 1. Clone repository
 
 ```bash
 git clone https://github.com/lam0311/train-booking-backend
 cd train-booking-backend
 ```
 
-### 2. Install Dependencies
+### 2. Cài đặt dependencies
 
 ```bash
 npm ci
 ```
 
-### 3. Configure Environment Variables
+### 3. Cấu hình biến môi trường
 
-Create `.env` from `.env.example` and configure the required connection strings and secrets.
+Tạo `.env` từ `.env.example` và cấu hình các chuỗi kết nối cũng như secret cần thiết.
 
-### 4. Start the Development Server
+### 4. Khởi động server phát triển
 
 ```bash
 npm run dev
 ```
 
-The development script uses Nodemon to restart the server when files change.
+Script phát triển sử dụng Nodemon để tự động khởi động lại server khi tệp thay đổi.
 
-### 5. Start the Production Server Locally
+### 5. Chạy server production ở máy cục bộ
 
 ```bash
 npm start
 ```
 
-By default, the application uses port `5000`, unless overridden by the environment configuration.
+Mặc định, ứng dụng sử dụng cổng `5000`, trừ khi được ghi đè bởi cấu hình môi trường.
 
 ---
 
-## Docker Deployment
+## Triển khai với Docker
 
-Docker allows the backend to run in a consistent environment without requiring Node.js to be installed directly on the deployment machine.
+Docker cho phép chạy backend trong một môi trường nhất quán mà không cần cài Node.js trực tiếp trên máy triển khai.
 
-### Prerequisites
+### Yêu cầu
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) or Docker Engine
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) hoặc Docker Engine
 - Docker Compose
-- A valid `.env` file
+- Một tệp `.env` hợp lệ
 
-### Pull and Run from DockerHub
+### Pull và chạy từ DockerHub
 
-If you prefer to run the pre-built image without building it from source, use the following commands.
+Nếu bạn muốn chạy image dựng sẵn mà không cần build từ mã nguồn, hãy dùng các lệnh sau.
 
 **Docker Image:** `thanhtran22096/train-booking-backend:1.0`
 
-Pull the image:
+Pull image:
 
 ```bash
 docker pull thanhtran22096/train-booking-backend:1.0
 ```
 
-Create a `.env` file containing the required environment variables, then run the container:
+Tạo tệp `.env` chứa các biến môi trường cần thiết, sau đó chạy container:
 
 ```bash
 docker run -d \
@@ -257,242 +258,239 @@ docker run -d \
   YOUR_USERNAME/train-booking-backend:1.0
 ```
 
-The API will be available at `http://localhost:5000`.
+API sẽ khả dụng tại `http://localhost:5000`.
 
-To view the container logs:
+Xem log của container:
 
 ```bash
 docker logs -f train-booking-backend
 ```
 
-To stop the container:
+Dừng container:
 
 ```bash
 docker stop train-booking-backend
 ```
 
-To remove the container:
+Xóa container:
 
 ```bash
 docker rm train-booking-backend
 ```
 
-**Note:** The `.env` file must contain valid configuration values for the required external services, such as MongoDB.
+**Lưu ý:** Tệp `.env` phải chứa các giá trị cấu hình hợp lệ cho các dịch vụ bên ngoài cần thiết, chẳng hạn MongoDB.
 
+### 1. Build và khởi động ứng dụng
 
-### 1. Build and Start the Application
-
-From the project root, run:
+Từ thư mục gốc của dự án, chạy:
 
 ```bash
 docker compose up --build -d
 ```
 
-This command builds the image if necessary and starts the configured containers in detached mode.
+Lệnh này build image nếu cần và khởi động các container đã cấu hình ở chế độ detached.
 
-### 2. Check Container Status
+### 2. Kiểm tra trạng thái container
 
 ```bash
 docker compose ps
 ```
 
-### 3. View Application Logs
+### 3. Xem log ứng dụng
 
 ```bash
 docker compose logs -f backend
 ```
 
-Press `Ctrl+C` to stop following the logs.
+Nhấn `Ctrl+C` để ngừng theo dõi log.
 
-### 4. Stop the Application
+### 4. Dừng ứng dụng
 
 ```bash
 docker compose down
 ```
 
-### 5. Rebuild After Code Changes
+### 5. Build lại sau khi thay đổi mã nguồn
 
 ```bash
 docker compose up -d --build
 ```
 
-### Configuration Notes
+### Ghi chú về cấu hình
 
-- The backend container exposes port `5000` by default.
-- The `.env` file supplies runtime environment variables.
-- MongoDB Atlas and an external Redis service can remain outside Docker.
-- Ensure `.env` is not copied into the Docker image.
-- The application image and the database are separate resources; rebuilding the image does not automatically provision external database services.
+- Container backend mặc định expose cổng `5000`.
+- Tệp `.env` cung cấp các biến môi trường lúc runtime.
+- MongoDB Atlas và dịch vụ Redis bên ngoài có thể nằm ngoài Docker.
+- Đảm bảo `.env` không bị sao chép vào Docker image.
+- Docker image của ứng dụng và cơ sở dữ liệu là các tài nguyên riêng biệt; việc build lại image không tự động cấp phát các dịch vụ cơ sở dữ liệu bên ngoài.
 
 ---
 
-## API Documentation
+## Tài liệu API
 
-The project includes Swagger/OpenAPI documentation.
+Dự án có kèm tài liệu Swagger/OpenAPI.
 
-When the application is running locally, open:
+Khi ứng dụng đang chạy cục bộ, hãy mở:
 
 - **Swagger UI:** [http://localhost:5000/api-docs](http://localhost:5000/api-docs)
-- **OpenAPI JSON file:** `openapi.json`
+- **Tệp OpenAPI JSON:** `openapi.json`
 
-The Swagger UI allows developers to inspect documented endpoints, review request and response schemas, and test supported API operations.
+Swagger UI cho phép lập trình viên xem các endpoint đã được tài liệu hóa, kiểm tra schema của request và response, và thử nghiệm các thao tác API được hỗ trợ.
 
-The available endpoints and authentication requirements are defined by the current API implementation and specification.
+Các endpoint khả dụng và yêu cầu xác thực được xác định bởi phần triển khai API hiện tại và đặc tả API.
 
-### API Endpoints
+### Các API Endpoint
 
-The API is organized into the following functional groups:
+API được tổ chức thành các nhóm chức năng sau:
 
-| Group | Endpoint | Method | Description |
+| Nhóm | Endpoint | Method | Mô tả |
 |---|---|---|---|
-| **System** | `/health/live` | GET | Checks whether the application is running |
-| **System** | `/health/ready` | GET | Checks application readiness |
-| **System** | `/openapi.json` | GET | Retrieves the OpenAPI specification |
-| **Authentication** | `/api/v1/auth/register` | POST | Registers a new account |
-| **Authentication** | `/api/v1/auth/login` | POST | Authenticates a user and issues tokens |
-| **Authentication** | `/api/v1/auth/refresh` | POST | Refreshes the access token |
-| **Authentication** | `/api/v1/auth/logout` | POST | Logs out and handles token revocation according to the implementation |
-| **Stations** | `/stations` | GET | Retrieves station information and station indexes |
-| **Trips** | `/trips` | GET | Searches for trips based on route and travel date |
-| **Trips** | `/trips/{tripId}/seats?from=&to=` | GET | Retrieves seat availability for a specified trip segment |
-| **Bookings** | `/bookings` | POST | Creates a booking for a selected trip segment |
-| **Bookings** | `/bookings/me` | GET | Retrieves the authenticated user's bookings |
-| **Bookings** | `/bookings/{bookingId}` | GET | Retrieves a booking by ID, subject to authorization |
-| **Bookings** | `/bookings/{bookingId}` | DELETE | Cancels a booking, subject to authorization |
+| **System** | `/health/live` | GET | Kiểm tra ứng dụng có đang chạy hay không |
+| **System** | `/health/ready` | GET | Kiểm tra mức độ sẵn sàng của ứng dụng |
+| **System** | `/openapi.json` | GET | Lấy đặc tả OpenAPI |
+| **Authentication** | `/api/v1/auth/register` | POST | Đăng ký tài khoản mới |
+| **Authentication** | `/api/v1/auth/login` | POST | Xác thực người dùng và cấp token |
+| **Authentication** | `/api/v1/auth/refresh` | POST | Làm mới access token |
+| **Authentication** | `/api/v1/auth/logout` | POST | Đăng xuất và xử lý thu hồi token theo cách triển khai |
+| **Stations** | `/stations` | GET | Lấy thông tin ga và chỉ số (index) của ga |
+| **Trips** | `/trips` | GET | Tìm kiếm chuyến tàu theo tuyến và ngày đi |
+| **Trips** | `/trips/{tripId}/seats?from=&to=` | GET | Lấy tình trạng ghế trống cho một đoạn của chuyến |
+| **Bookings** | `/bookings` | POST | Tạo đặt vé cho một đoạn của chuyến đã chọn |
+| **Bookings** | `/bookings/me` | GET | Lấy danh sách đặt vé của người dùng đã xác thực |
+| **Bookings** | `/bookings/{bookingId}` | GET | Lấy thông tin đặt vé theo ID, tùy thuộc vào quyền truy cập |
+| **Bookings** | `/bookings/{bookingId}` | DELETE | Hủy đặt vé, tùy thuộc vào quyền truy cập |
 
-Refer to Swagger UI for the complete endpoint definitions, request parameters, request bodies, response schemas, and authentication requirements.
+Tham khảo Swagger UI để xem đầy đủ định nghĩa endpoint, tham số request, request body, schema response và yêu cầu xác thực.
 
-### Typical Booking Workflow
+### Quy trình đặt vé điển hình
 
-A typical booking workflow consists of the following steps:
+Một quy trình đặt vé điển hình gồm các bước sau:
 
-1. **Authenticate:** Call `POST /api/v1/auth/login` to obtain an access token and refresh token.
-2. **Search trips:** Call `GET /trips?from=&to=&date=` with the required route and travel date parameters.
-3. **Check seat availability:** Call `GET /trips/{tripId}/seats?from=&to=` to inspect available seats for the selected segment.
-4. **Create a booking:** Call `POST /bookings` with the required booking details and a valid access token.
-5. **Manage bookings:** Use `GET /bookings/me` to view personal bookings, `GET /bookings/{bookingId}` to retrieve a booking, or `DELETE /bookings/{bookingId}` to request cancellation.
+1. **Xác thực:** Gọi `POST /api/v1/auth/login` để nhận access token và refresh token.
+2. **Tìm chuyến:** Gọi `GET /trips?from=&to=&date=` với các tham số tuyến và ngày đi cần thiết.
+3. **Kiểm tra ghế trống:** Gọi `GET /trips/{tripId}/seats?from=&to=` để xem các ghế còn trống của đoạn đã chọn.
+4. **Tạo đặt vé:** Gọi `POST /bookings` với thông tin đặt vé cần thiết và một access token hợp lệ.
+5. **Quản lý đặt vé:** Dùng `GET /bookings/me` để xem các đặt vé của cá nhân, `GET /bookings/{bookingId}` để xem chi tiết một đặt vé, hoặc `DELETE /bookings/{bookingId}` để yêu cầu hủy.
 
-### Segment-Based Booking
+### Đặt vé theo đoạn (Segment-Based Booking)
 
-The system supports booking seats for a specific segment of a train journey. A seat's occupied-segment mask represents the segments in which it is unavailable.
+Hệ thống hỗ trợ đặt ghế cho một đoạn cụ thể của hành trình. Occupied-segment mask của một ghế biểu diễn các đoạn mà ghế đó không còn trống.
 
-For a train with five stations indexed from `0` to `4`, there are four segments. A journey from station index `fromIndex` to `toIndex` occupies the segments from `fromIndex` through `toIndex - 1`.
+Với một đoàn tàu có năm ga được đánh chỉ số từ `0` đến `4`, sẽ có bốn đoạn. Một hành trình từ ga có chỉ số `fromIndex` đến `toIndex` sẽ chiếm các đoạn từ `fromIndex` đến `toIndex - 1`.
 
-For example:
+Ví dụ:
 
-- `0 → 2`: occupies segments `0` and `1`.
-- `2 → 4`: occupies segments `2` and `3`.
-- `0 → 4`: occupies all four segments.
+- `0 → 2`: chiếm đoạn `0` và `1`.
+- `2 → 4`: chiếm đoạn `2` và `3`.
+- `0 → 4`: chiếm cả bốn đoạn.
 
-Two bookings for the same physical seat may coexist if their occupied segments do not overlap, subject to the application's booking validation rules.
-
-
+Hai đặt vé cho cùng một ghế vật lý có thể cùng tồn tại nếu các đoạn chúng chiếm không chồng lấn nhau, tuân theo các quy tắc kiểm tra hợp lệ của ứng dụng.
 
 ---
 
-## Health Checks
+## Kiểm tra sức khỏe dịch vụ
 
-The application provides health-check endpoints.
+Ứng dụng cung cấp các endpoint health-check.
 
-| Endpoint | Purpose |
+| Endpoint | Mục đích |
 |---|---|
-| `GET /health/live` | Checks whether the application is running |
-| `GET /health/ready` | Checks whether the application is ready, including database readiness |
+| `GET /health/live` | Kiểm tra ứng dụng có đang chạy hay không |
+| `GET /health/ready` | Kiểm tra ứng dụng đã sẵn sàng hay chưa, bao gồm tình trạng sẵn sàng của cơ sở dữ liệu |
 
-Example:
+Ví dụ:
 
 ```bash
 curl http://localhost:5000/health/live
 ```
 
-Check database readiness:
+Kiểm tra mức độ sẵn sàng của cơ sở dữ liệu:
 
 ```bash
 curl http://localhost:5000/health/ready
 ```
 
-A successful liveness response does not necessarily mean all external dependencies are available. Use the readiness endpoint to check the application's readiness condition.
+Phản hồi liveness thành công không nhất thiết có nghĩa là mọi dependency bên ngoài đều khả dụng. Hãy dùng endpoint readiness để kiểm tra điều kiện sẵn sàng của ứng dụng.
 
 ---
 
-## Development
+## Phát triển
 
-### Available npm Scripts
+### Các npm script khả dụng
 
-| Command | Description |
+| Lệnh | Mô tả |
 |---|---|
-| `npm start` | Starts the backend server |
-| `npm run dev` | Starts the development server with Nodemon |
-| `npm run seed` | Executes the data seeding script |
-| `npm run lint` | Runs the configured linting checks |
-| `npm run lint:fix` | Runs automatic lint fixes, if supported by the current configuration |
+| `npm start` | Khởi động backend server |
+| `npm run dev` | Khởi động server phát triển với Nodemon |
+| `npm run seed` | Thực thi script nạp dữ liệu mẫu |
+| `npm run lint` | Chạy các kiểm tra lint đã cấu hình |
+| `npm run lint:fix` | Chạy tự động sửa lỗi lint, nếu cấu hình hiện tại hỗ trợ |
 
-Review `package.json` for the exact scripts and options available in the current version.
+Xem `package.json` để biết chính xác các script và tùy chọn khả dụng trong phiên bản hiện tại.
 
-### Seeding Data
+### Nạp dữ liệu mẫu (Seeding)
 
-The project contains `scripts/seed.js` for data seeding.
+Dự án có `scripts/seed.js` để nạp dữ liệu mẫu.
 
-Before executing:
+Trước khi chạy:
 
 ```bash
 npm run seed
 ```
 
-review the script to understand which database it connects to and whether it creates, updates, or deletes data. Always use the intended development database when testing data seeding.
+hãy xem lại script để hiểu nó kết nối tới cơ sở dữ liệu nào và nó tạo, cập nhật hay xóa dữ liệu. Luôn sử dụng đúng cơ sở dữ liệu phát triển khi thử nghiệm việc nạp dữ liệu.
 
-### Branching and Contributions
+### Quy trình làm việc với nhánh và đóng góp
 
-For collaborative development:
+Để phát triển cộng tác:
 
-1. Create a feature branch.
-2. Make and test your changes.
-3. Commit the changes with a descriptive message.
-4. Push the branch to the remote repository.
-5. Open a pull request for review, if required by the team workflow.
+1. Tạo một nhánh tính năng (feature branch).
+2. Thực hiện và kiểm thử các thay đổi.
+3. Commit các thay đổi với thông điệp mô tả rõ ràng.
+4. Push nhánh lên remote repository.
+5. Mở pull request để review, nếu quy trình của nhóm yêu cầu.
 
-Do not commit secrets, generated credentials, or local `.env` files.
+Không commit secret, thông tin xác thực được tạo ra, hoặc các tệp `.env` cục bộ.
 
 ---
 
-## Troubleshooting
+## Xử lý sự cố
 
-### MongoDB Connection Failure
+### Lỗi kết nối MongoDB
 
-Check that:
+Hãy kiểm tra rằng:
 
-- `MONGODB_URL` is valid.
-- Database credentials are correct.
-- The database allows connections from the deployment environment.
-- The database service is available.
+- `MONGODB_URL` hợp lệ.
+- Thông tin xác thực cơ sở dữ liệu chính xác.
+- Cơ sở dữ liệu cho phép kết nối từ môi trường triển khai.
+- Dịch vụ cơ sở dữ liệu đang khả dụng.
 
-### Container Exits Immediately
+### Container thoát ngay lập tức
 
-Inspect the logs:
+Kiểm tra log:
 
 ```bash
 docker compose logs backend
 ```
 
-Look for missing environment variables, failed database connections, missing files, or startup errors.
+Tìm các lỗi như thiếu biến môi trường, kết nối cơ sở dữ liệu thất bại, thiếu tệp hoặc lỗi khởi động.
 
-### Port Already in Use
+### Cổng đã được sử dụng
 
-If port `5000` is occupied, change the host-side port mapping in `compose.yaml`, for example:
+Nếu cổng `5000` đang bị chiếm, hãy đổi ánh xạ cổng phía host trong `compose.yaml`, ví dụ:
 
 ```yaml
 ports:
   - "5001:5000"
 ```
 
-The backend still listens on port `5000` inside the container, while clients access it through port `5001` on the host.
+Backend vẫn lắng nghe ở cổng `5000` bên trong container, trong khi client truy cập thông qua cổng `5001` trên host.
 
-### Swagger UI Does Not Load
+### Swagger UI không tải được
 
-Verify that `swagger.yaml` is present at the path expected by the application and that the server has started successfully.
+Xác minh rằng `swagger.yaml` có mặt tại đường dẫn mà ứng dụng mong đợi và server đã khởi động thành công.
 
 ---
 
-## License
+## Giấy phép
 
-Add the applicable license information here before distributing the project publicly.
+Hãy bổ sung thông tin giấy phép phù hợp tại đây trước khi phân phối dự án công khai.
