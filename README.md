@@ -196,8 +196,6 @@ git clone https://github.com/lam0311/train-booking-backend
 cd train-booking-backend
 ```
 
-Replace the placeholder with the actual repository URL.
-
 ### 2. Install Dependencies
 
 ```bash
@@ -279,7 +277,7 @@ To remove the container:
 docker rm train-booking-backend
 ```
 
-**Note:** Replace `YOUR_USERNAME` with your DockerHub username. The `.env` file must contain valid configuration values for the required external services, such as MongoDB.
+**Note:** The `.env` file must contain valid configuration values for the required external services, such as MongoDB.
 
 
 ### 1. Build and Start the Application
