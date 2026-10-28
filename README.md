@@ -62,16 +62,15 @@ Dự án bao gồm:
 
 ## Kiến trúc hệ thống
 
-Ứng dụng được tổ chức thành các module riêng biệt và các thành phần dùng chung.
+Ứng dụng áp dụng mô hình **Hexagonal Architecture (Ports & Adapters)** kết hợp phân tách theo từng module nghiệp vụ. Logic cốt lõi (Domain) được giữ độc lập, không phụ thuộc vào framework Express hay cơ sở dữ liệu MongoDB.
 
-### Các thành phần chính
+### Các tầng xử lý chính trong mỗi module
 
-- **Server Layer**: Khởi động HTTP server và thiết lập kết nối cơ sở dữ liệu.
-- **Application Layer**: Cấu hình Express, middleware, các API route, health check và tài liệu.
-- **Modules**: Tổ chức các chức năng nghiệp vụ thành những phần riêng biệt.
-- **Configuration**: Chứa cấu hình kết nối cơ sở dữ liệu và hạ tầng khác.
-- **Shared Components**: Cung cấp các tiện ích và chức năng dùng chung giữa các module.
-- **Database Layer**: Sử dụng MongoDB thông qua Mongoose để lưu trữ dữ liệu.
+- **Domain Layer**: Chứa thực thể và logic nghiệp vụ thuần túy (thuật toán Bitmask, kiểm tra xung đột chặng), hoàn toàn không phụ thuộc thư viện bên ngoài.
+- **Application Layer**: Chứa các Use Case điều phối quy trình (tạo đặt vé, hủy vé, tra cứu tình trạng ghế).
+- **Presentation Layer**: Express Controllers, Routers và Zod Schema để kiểm thực dữ liệu đầu vào.
+- **Infrastructure Layer**: Triển khai các adapter giao tiếp ngoại vi (Mongoose ODM cho MongoDB, Redis client cho cache và lock phân tán).
+- **Shared Components**: Cung cấp middleware bảo vệ (auth, rate limit, helmet, error handling) và các tiện ích dùng chung giữa các module.
 
 ### Vòng đời của một request
 
@@ -330,9 +329,11 @@ docker compose up -d --build
 
 Dự án có kèm tài liệu Swagger/OpenAPI.
 
-Khi ứng dụng đang chạy cục bộ, hãy mở:
+Khi ứng dụng đang chạy cục bộ hoặc xem bản trực tuyến, hãy mở:
 
-- **Swagger UI:** [http://localhost:5000/api-docs](http://localhost:5000/api-docs)
+- **Swagger UI (Cục bộ):** [http://localhost:5000/api-docs](http://localhost:5000/api-docs)
+- **Swagger UI (Trực tuyến):** [https://train-booking-backend-public.vercel.app/api-docs/](https://train-booking-backend-public.vercel.app/api-docs/)
+- **Giao diện Demo Trực tuyến:** [https://train-booking-backend-public.vercel.app](https://train-booking-backend-public.vercel.app)
 - **Tệp OpenAPI JSON:** `openapi.json`
 
 Swagger UI cho phép lập trình viên xem các endpoint đã được tài liệu hóa, kiểm tra schema của request và response, và thử nghiệm các thao tác API được hỗ trợ.
@@ -372,19 +373,26 @@ Một quy trình đặt vé điển hình gồm các bước sau:
 4. **Tạo đặt vé:** Gọi `POST /bookings` với thông tin đặt vé cần thiết và một access token hợp lệ.
 5. **Quản lý đặt vé:** Dùng `GET /bookings/me` để xem các đặt vé của cá nhân, `GET /bookings/{bookingId}` để xem chi tiết một đặt vé, hoặc `DELETE /bookings/{bookingId}` để yêu cầu hủy.
 
-### Đặt vé theo đoạn (Segment-Based Booking)
+### Đặt vé theo đoạn (Segment-Based Booking) & Thuật toán Bitmask
 
-Hệ thống hỗ trợ đặt ghế cho một đoạn cụ thể của hành trình. Occupied-segment mask của một ghế biểu diễn các đoạn mà ghế đó không còn trống.
+Hệ thống hỗ trợ đặt ghế cho một đoạn cụ thể của hành trình bằng giải thuật **Bitmask**, tối ưu hóa việc kiểm tra xung đột ghế với độ phức tạp $O(1)$.
 
-Với một đoàn tàu có năm ga được đánh chỉ số từ `0` đến `4`, sẽ có bốn đoạn. Một hành trình từ ga có chỉ số `fromIndex` đến `toIndex` sẽ chiếm các đoạn từ `fromIndex` đến `toIndex - 1`.
+Với tuyến tàu có 5 ga (chỉ số `0` đến `4`), hành trình được chia thành 4 đoạn tương ứng với một số nguyên 4-bit (`0` đến `15`):
+- Đoạn 0 (Ga 0 → 1): Bit 0 (giá trị 1, `0001`)
+- Đoạn 1 (Ga 1 → 2): Bit 1 (giá trị 2, `0010`)
+- Đoạn 2 (Ga 2 → 3): Bit 2 (giá trị 4, `0100`)
+- Đoạn 3 (Ga 3 → 4): Bit 3 (giá trị 8, `1000`)
 
-Ví dụ:
+Mỗi ghế lưu trạng thái qua trường `occupiedMask` (từ `0` - trống toàn bộ, đến `15` - kín toàn bộ chuyến).
 
-- `0 → 2`: chiếm đoạn `0` và `1`.
-- `2 → 4`: chiếm đoạn `2` và `3`.
-- `0 → 4`: chiếm cả bốn đoạn.
-
-Hai đặt vé cho cùng một ghế vật lý có thể cùng tồn tại nếu các đoạn chúng chiếm không chồng lấn nhau, tuân theo các quy tắc kiểm tra hợp lệ của ứng dụng.
+**Các phép toán bitwise chính:**
+- **Tạo mặt nạ yêu cầu (`segmentMask`):** Với hành trình từ `fromIndex` đến `toIndex`, mặt nạ chiếm chỗ được tính bằng:
+  `segmentMask = ((1 << (toIndex - fromIndex)) - 1) << fromIndex;`
+  Ví dụ: chặng `0 → 2` chiếm đoạn 0 và 1 (`0011` = 3); chặng `2 → 4` chiếm đoạn 2 và 3 (`1100` = 12).
+- **Kiểm tra xung đột:** Thực hiện phép toán bitwise AND:
+  `hasConflict = (occupiedMask & requestedMask) !== 0;`
+  Nếu kết quả bằng `0`, hai đoạn không giao nhau, hệ thống cho phép khách đặt cùng ghế vật lý.
+- **Cập nhật nguyên tử tại MongoDB:** Khi đặt vé, hệ thống dùng toán tử `$bitsAllClear: requestedMask` kết hợp `$bit: { occupiedMask: { or: requestedMask } }` để chống bán trùng ghế (race condition) trực tiếp ở cấp độ cơ sở dữ liệu.
 
 ---
 
