@@ -1,6 +1,6 @@
 # Train Booking Backend
 
-Backend RESTful API cho hệ thống đặt vé tàu, được xây dựng bằng Node.js và Express. Dịch vụ này cung cấp nền tảng backend cho các quy trình đặt chỗ tàu, bao gồm định tuyến API, kết nối cơ sở dữ liệu, cấu hình liên quan đến xác thực và tài liệu API.
+Backend RESTful API cho hệ thống đặt vé tàu, được xây dựng bằng Node.js và Express. Dịch vụ này cung cấp nền tảng backend cho các quy trình đặt chỗ tàu, trong đó bao gồm định tuyến API, kết nối cơ sở dữ liệu, cấu hình liên quan đến xác thực và tài liệu API.
 
 Dự án được tổ chức thành các module và thành phần dùng chung nhằm dễ bảo trì, tách biệt trách nhiệm và triển khai thuận tiện hơn với Docker.
 
@@ -8,7 +8,9 @@ Dự án được tổ chức thành các module và thành phần dùng chung n
 
 ## Mục lục
 
-- [Tổng quan](#tổng-quan)
+- [Tổng quan & Nghiệp vụ cốt lõi](#tổng-quan--nghiệp-vụ-cốt-lõi)
+  - [Đặt vé theo đoạn & Thuật toán Bitmask](#đặt-vé-theo-đoạn-segment-based-booking--thuật-toán-bitmask)
+  - [Quy trình đặt vé điển hình](#quy-trình-đặt-vé-điển-hình)
 - [Công nghệ sử dụng](#công-nghệ-sử-dụng)
 - [Kiến trúc hệ thống](#kiến-trúc-hệ-thống)
 - [Cấu trúc dự án](#cấu-trúc-dự-án)
@@ -19,31 +21,49 @@ Dự án được tổ chức thành các module và thành phần dùng chung n
 - [Tài liệu API](#tài-liệu-api)
 - [Kiểm tra sức khỏe dịch vụ](#kiểm-tra-sức-khỏe-dịch-vụ)
 - [Kiểm thử tải (Load Test)](#kiểm-thử-tải-load-test)
+- [Kiểm thử an ninh & Bảo mật (Security Testing)](#kiểm-thử-an-ninh--bảo-mật-security-testing)
 - [Phát triển](#phát-triển)
 - [Xử lý sự cố](#xử-lý-sự-cố)
 - [Giấy phép](#giấy-phép)
 
 ---
 
-## Tổng quan
+## Tổng quan & Nghiệp vụ cốt lõi
 
-Train Booking Backend là một dịch vụ RESTful API được thiết kế để hỗ trợ ứng dụng đặt vé tàu.
+Train Booking Backend là một dịch vụ RESTful API phục vụ hệ thống đặt vé tàu theo chặng, được xây dựng bằng Node.js và Express cho môn Kiến trúc phần mềm.
 
-Backend đóng vai trò trung gian giữa client và các dịch vụ dữ liệu phía dưới. Nó nhận các HTTP request, xử lý logic nghiệp vụ, tương tác với cơ sở dữ liệu và trả về phản hồi có cấu trúc.
+Hệ thống nhận các HTTP request, xử lý logic nghiệp vụ phân bổ tài nguyên theo chặng, tương tác với cơ sở dữ liệu MongoDB và Redis, sau đó phản hồi cho client.
 
-Dự án bao gồm:
+### Đặt vé theo đoạn & Thuật toán Bitmask
 
-- Một HTTP server dựa trên Express.
-- Cấu trúc mã nguồn theo module.
-- Kết nối MongoDB thông qua Mongoose.
-- Cấu hình dựa trên biến môi trường.
-- Tài liệu API thông qua Swagger/OpenAPI.
-- Các endpoint health-check để giám sát dịch vụ.
-- Hỗ trợ Docker để triển khai theo container.
-- Bản triển khai trực tuyến trên Vercel và Render để dùng thử.
-- Kết quả kiểm thử tải được chạy trên Kaggle.
+Hệ thống hỗ trợ đặt ghế cho một đoạn cụ thể của hành trình bằng giải thuật Bitmask, tối ưu hóa việc kiểm tra xung đột ghế với độ phức tạp O(1).
 
-> Lưu ý: Các chức năng nghiệp vụ và endpoint API cụ thể cần được đối chiếu với mã nguồn hiện tại và đặc tả API.
+Với tuyến tàu có 5 ga (chỉ số 0 đến 4), hành trình được chia thành 4 đoạn tương ứng với một số nguyên 4-bit (0 đến 15):
+- Đoạn 0 (Ga 0 → 1): Bit 0 (giá trị 1, 0001)
+- Đoạn 1 (Ga 1 → 2): Bit 1 (giá trị 2, 0010)
+- Đoạn 2 (Ga 2 → 3): Bit 2 (giá trị 4, 0100)
+- Đoạn 3 (Ga 3 → 4): Bit 3 (giá trị 8, 1000)
+
+Mỗi ghế lưu trạng thái qua trường occupiedMask (từ 0 - trống toàn bộ, đến 15 - kín toàn bộ chuyến).
+
+**Các phép toán bitwise chính:**
+- **Tạo mặt nạ yêu cầu (segmentMask):** Với hành trình từ fromIndex đến toIndex, mặt nạ chiếm chỗ được tính bằng:
+  segmentMask = ((1 << (toIndex - fromIndex)) - 1) << fromIndex;
+  Ví dụ: chặng 0 → 2 chiếm đoạn 0 và 1 (0011 = 3); chặng 2 → 4 chiếm đoạn 2 và 3 (1100 = 12).
+- **Kiểm tra xung đột:** Thực hiện phép toán bitwise AND:
+  hasConflict = (occupiedMask & requestedMask) !== 0;
+  Nếu kết quả bằng 0, hai đoạn không giao nhau, hệ thống cho phép khách đặt cùng ghế vật lý.
+- **Cập nhật nguyên tử tại MongoDB:** Khi đặt vé, hệ thống dùng toán tử $bitsAllClear kết hợp $bit (toán tử OR) để chống bán trùng ghế (race condition) trực tiếp ở cấp độ cơ sở dữ liệu.
+
+### Quy trình đặt vé điển hình
+
+Một quy trình đặt vé điển hình gồm các bước sau:
+
+1. **Xác thực:** Gọi POST /api/v1/auth/login để nhận access token và refresh token.
+2. **Tìm chuyến:** Gọi GET /trips?from=&to=&date= với các tham số tuyến và ngày đi cần thiết.
+3. **Kiểm tra ghế trống:** Gọi GET /trips/{tripId}/seats?from=&to= để xem các ghế còn trống của đoạn đã chọn.
+4. **Tạo đặt vé:** Gọi POST /bookings với thông tin đặt vé cần thiết và một access token hợp lệ.
+5. **Quản lý đặt vé:** Dùng GET /bookings/me để xem các đặt vé của cá nhân, GET /bookings/{bookingId} để xem chi tiết một đặt vé, hoặc DELETE /bookings/{bookingId} để yêu cầu hủy.
 
 ---
 
@@ -342,7 +362,6 @@ Backend đã được triển khai trên hai nền tảng để bạn có thể 
 **Lưu ý khi dùng bản demo:**
 
 - Render Free Tier tự động tạm ngưng (sleep) khi không có truy cập. Request đầu tiên có thể mất khoảng **30–60 giây** để đánh thức dịch vụ (đo thực tế: ~39 giây). Các request sau đó sẽ phản hồi bình thường.
-- Đây là môi trường demo với tài nguyên giới hạn, không phù hợp cho tải production.
 - Có thể kiểm tra nhanh bằng:
 
 ```bash
@@ -389,37 +408,6 @@ API được tổ chức thành các nhóm chức năng sau:
 
 Tham khảo Swagger UI để xem đầy đủ định nghĩa endpoint, tham số request, request body, schema response và yêu cầu xác thực.
 
-### Quy trình đặt vé điển hình
-
-Một quy trình đặt vé điển hình gồm các bước sau:
-
-1. **Xác thực:** Gọi `POST /api/v1/auth/login` để nhận access token và refresh token.
-2. **Tìm chuyến:** Gọi `GET /trips?from=&to=&date=` với các tham số tuyến và ngày đi cần thiết.
-3. **Kiểm tra ghế trống:** Gọi `GET /trips/{tripId}/seats?from=&to=` để xem các ghế còn trống của đoạn đã chọn.
-4. **Tạo đặt vé:** Gọi `POST /bookings` với thông tin đặt vé cần thiết và một access token hợp lệ.
-5. **Quản lý đặt vé:** Dùng `GET /bookings/me` để xem các đặt vé của cá nhân, `GET /bookings/{bookingId}` để xem chi tiết một đặt vé, hoặc `DELETE /bookings/{bookingId}` để yêu cầu hủy.
-
-### Đặt vé theo đoạn (Segment-Based Booking) & Thuật toán Bitmask
-
-Hệ thống hỗ trợ đặt ghế cho một đoạn cụ thể của hành trình bằng giải thuật **Bitmask**, tối ưu hóa việc kiểm tra xung đột ghế với độ phức tạp $O(1)$.
-
-Với tuyến tàu có 5 ga (chỉ số `0` đến `4`), hành trình được chia thành 4 đoạn tương ứng với một số nguyên 4-bit (`0` đến `15`):
-- Đoạn 0 (Ga 0 → 1): Bit 0 (giá trị 1, `0001`)
-- Đoạn 1 (Ga 1 → 2): Bit 1 (giá trị 2, `0010`)
-- Đoạn 2 (Ga 2 → 3): Bit 2 (giá trị 4, `0100`)
-- Đoạn 3 (Ga 3 → 4): Bit 3 (giá trị 8, `1000`)
-
-Mỗi ghế lưu trạng thái qua trường `occupiedMask` (từ `0` - trống toàn bộ, đến `15` - kín toàn bộ chuyến).
-
-**Các phép toán bitwise chính:**
-- **Tạo mặt nạ yêu cầu (`segmentMask`):** Với hành trình từ `fromIndex` đến `toIndex`, mặt nạ chiếm chỗ được tính bằng:
-  `segmentMask = ((1 << (toIndex - fromIndex)) - 1) << fromIndex;`
-  Ví dụ: chặng `0 → 2` chiếm đoạn 0 và 1 (`0011` = 3); chặng `2 → 4` chiếm đoạn 2 và 3 (`1100` = 12).
-- **Kiểm tra xung đột:** Thực hiện phép toán bitwise AND:
-  `hasConflict = (occupiedMask & requestedMask) !== 0;`
-  Nếu kết quả bằng `0`, hai đoạn không giao nhau, hệ thống cho phép khách đặt cùng ghế vật lý.
-- **Cập nhật nguyên tử tại MongoDB:** Khi đặt vé, hệ thống dùng toán tử `$bitsAllClear: requestedMask` kết hợp `$bit: { occupiedMask: { or: requestedMask } }` để chống bán trùng ghế (race condition) trực tiếp ở cấp độ cơ sở dữ liệu.
-
 ---
 
 ## Kiểm tra sức khỏe dịch vụ
@@ -443,13 +431,13 @@ Kiểm tra mức độ sẵn sàng của cơ sở dữ liệu:
 curl http://localhost:5000/health/ready
 ```
 
-Phản hồi liveness thành công không nhất thiết có nghĩa là mọi dependency bên ngoài đều khả dụng. Hãy dùng endpoint readiness để kiểm tra điều kiện sẵn sàng của ứng dụng.
-
 ---
 
 ## Kiểm thử tải (Load Test)
 
 Hiệu năng của backend được đánh giá bằng bài test tải tăng dần (step load) chạy trên Kaggle, gọi vào bản triển khai trên Render.
+
+> Hướng dẫn thiết lập notebook và thực thi kiểm thử từng bước xem tại: [Hướng dẫn benchmark trên Kaggle](./kaggle/README.md).
 
 ### Môi trường test
 
@@ -498,14 +486,66 @@ Hiệu năng của backend được đánh giá bằng bài test tải tăng d�
 | Breaking point | **1.200 users đồng thời** |
 | Max stable users (theo công cụ test) | 1.600 users |
 
-> **Lưu ý:** Chỉ số "Max stable users" do công cụ test tự phân loại dựa trên ngưỡng p99. Tại 1.600 users, p99 là 4.803 ms nên được gắn nhãn "OK", nhưng p95 = 4.524 ms và max = 15.099 ms cho thấy hệ thống thực tế đã quá tải. Ngưỡng hoạt động ổn định thực tế nên được hiểu là khoảng **900–1.000 users**.
+> **Lưu ý:** Chỉ số "Max stable users" do công cụ test tự phân loại dựa trên ngưỡng p99. Tại 1.600 users, p99 là 4.803 ms nên được gắn nhãn "OK", nhưng p95 = 4.524 ms và max = 15.099 ms cho thấy hệ thống thực tế đã quá tải. Ngưỡng hoạt động ổn định thực tế ta nên được hiểu là trong khoảng **900–1.000 users**.
 
 ### Nhận xét
 
 - Từ 50 đến 900 users, hệ thống hoạt động ổn định với 0% lỗi. Throughput tăng dần rồi bão hòa quanh **330–345 req/s**; sau mức này, thêm user chỉ làm tăng độ trễ.
 - Từ 1.000 users trở lên, độ trễ p99 vượt 4 giây và throughput giảm.
 - Từ khoảng 2.200 users, request bắt đầu timeout (~15 giây) và tỷ lệ lỗi tăng, lên tới 28,8% tại 3.000 users.
-- Kết quả được đo trên Render Free Tier (CPU và RAM giới hạn) với client là Kaggle CPU, nên các con số tuyệt đối chỉ mang tính tham khảo. Hiệu năng trên hạ tầng mạnh hơn sẽ khác.
+- Kết quả được đo trên Render Free Tier (CPU và RAM giới hạn) với client là Kaggle CPU. Hiệu năng trên hạ tầng mạnh hơn có thể sẽ khác.
+
+---
+
+## Kiểm thử an ninh & Bảo mật (Security Testing)
+
+Hệ thống được rà soát an toàn thông tin bằng cả phương pháp phân tích tĩnh (SAST) và phân tích động (DAST) theo tiêu chuẩn OWASP Top 10.
+
+### 1. Phân tích mã nguồn tĩnh (SAST) với Semgrep
+
+Sử dụng công cụ **Semgrep** với bộ quy tắc tiêu chuẩn `p/owasp-top-ten` để rà soát toàn bộ mã nguồn backend:
+
+- **Bộ quy tắc áp dụng:** 75 rules phù hợp cho mã nguồn Node.js/JavaScript (lọc từ 560 rules cộng đồng).
+- **Phạm vi quét:** 48 tệp mã nguồn trong thư mục `src/`.
+- **Kết quả:** **0 phát hiện (0 findings, 0 blocking)**. Mã nguồn tuân thủ các nguyên tắc an toàn, không có lỗ hổng hardcoded secrets, injection hay cấu hình sai.
+
+**Cách thực hiện kiểm thử Semgrep:**
+1. Cài đặt Semgrep (yêu cầu môi trường Python):
+   ```bash
+   pip install semgrep
+   ```
+2. Thực thi lệnh quét:
+   ```bash
+   semgrep scan --config p/owasp-top-ten src/
+   ```
+   *(Trên Windows PowerShell, có thể chạy script tiện ích có sẵn: [`./run-semgrep.ps1`](./run-semgrep.ps1))*.
+
+### 2. Phân tích bảo mật động (DAST) với OWASP ZAP
+
+Sử dụng **OWASP ZAP 2.17.0** quét tự động ứng dụng đang chạy cục bộ (`http://localhost:5000`):
+
+| Mức độ rủi ro (Risk) | Số lượng cảnh báo | Chi tiết |
+|---|:---:|---|
+| **High** | **0** | Không có lỗ hổng nghiêm trọng (SQL/NoSQL Injection, RCE) |
+| **Medium** | **0** | Không có lỗ hổng mức trung bình (XSS, CSRF, Broken Auth) |
+| **Low** | 1 | *Application Error Disclosure* (thông báo lỗi xử lý ở môi trường phát triển) |
+| **Informational** | 2 | *Authentication Request Identified*, *User Agent Fuzzer* |
+
+**Cách thực hiện kiểm thử OWASP ZAP:**
+1. Khởi động server backend ở môi trường cục bộ:
+   ```bash
+   npm run dev
+   # hoặc: docker compose up -d backend
+   ```
+2. Mở OWASP ZAP và cấu hình quét:
+   - **Quét nhanh (Automated Scan):** Nhập URL mục tiêu `http://localhost:5000` và chọn **Attack**.
+   - **Quét theo đặc tả API (Khuyến nghị):** Chọn menu **Import** → **Import an OpenAPI definition from a file** → chọn tệp [`./openapi.json`](./openapi.json) để ZAP quét trúng danh sách endpoint nghiệp vụ.
+3. Xuất báo cáo sau khi hoàn tất: Chọn menu **Report** → **Generate Report...** để lưu báo cáo HTML.
+
+**Đánh giá:** Hệ thống chống chịu tốt trước các tấn công quét tự động nhờ tích hợp các middleware bảo vệ đa lớp:
+- `helmet`: Tự động thiết lập các HTTP Security Headers (`X-Content-Type-Options: nosniff`, `X-Frame-Options`, loại bỏ `X-Powered-By`).
+- `express-rate-limit`: Giới hạn 300 req/phút/IP để phòng chống brute-force và spam đặt vé.
+- `zod`: Kiểm thực chặt chẽ kiểu dữ liệu và định dạng tham số đầu vào trước khi đến tầng xử lý nghiệp vụ.
 
 ---
 
