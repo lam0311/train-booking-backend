@@ -336,7 +336,7 @@ status: "ALLOCATING"`
         packetType: "DOMAIN BITMASK COMPUTATION",
         packetData: `count = toIndex (2) - fromIndex (0) = 2
 mask = ((1 << 2) - 1) << 0 = 3 (Nhị phân: 0b0011)
-Ý nghĩa: Chiếm giữ Phân đoạn 0 (Hà Nội -> Nam Định) và Phân đoạn 1 (Nam Định -> Vinh)
+Ý nghĩa: Chiếm giữ Phân đoạn 0 (Hà Nội -> Phủ Lý) và Phân đoạn 1 (Phủ Lý -> Ninh Bình)
 Thời gian tính toán: Tức thì (Toán tử bit)`
     },
     {

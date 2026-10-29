@@ -1,31 +1,36 @@
+// ============================================================================
+// DEMO CÁC PHÉP TOÁN BITMASK ĐẶT VÉ TÀU
+// ============================================================================
+
 const STATIONS = [
     { id: 0, name: "Hà Nội", code: "HAN" },
-    { id: 1, name: "Nam Định", code: "NDI" },
-    { id: 2, name: "Vinh", code: "VII" },
-    { id: 3, name: "Huế", code: "HUE" },
-    { id: 4, name: "Đà Nẵng", code: "DAN" }
+    { id: 1, name: "Phủ Lý", code: "PLY" },
+    { id: 2, name: "Ninh Bình", code: "NBI" },
+    { id: 3, name: "Thanh Hóa", code: "THA" },
+    { id: 4, name: "Vinh", code: "VII" }
 ];
 
 const SEG_LABELS = [
-    "Chặng 0: Hà Nội - Nam Định",
-    "Chặng 1: Nam Định - Vinh",
-    "Chặng 2: Vinh - Huế",
-    "Chặng 3: Huế - Đà Nẵng"
+    "Chặng 0: Hà Nội - Phủ Lý",
+    "Chặng 1: Phủ Lý - Ninh Bình",
+    "Chặng 2: Ninh Bình - Thanh Hóa",
+    "Chặng 3: Thanh Hóa - Vinh"
 ];
 
 const TOTAL_SEGMENTS = 4;
-const FULL_MASK = 15; // 0b1111
+const FULL_MASK = 15; // 0b1111 (4 bit tương ứng 4 chặng)
 
 function toBin(n, bits = 4) {
     return (n >>> 0).toString(2).padStart(bits, "0");
 }
 
 function toHex(n) {
-    return "0x" + n.toString(16).toUpperCase().padStart(2, "0");
+    return "0x" + (n >>> 0).toString(16).toUpperCase().padStart(2, "0");
 }
 
 function buildSegmentMask(fromIndex, toIndex) {
     const count = toIndex - fromIndex;
+    if (count <= 0) return 0;
     return ((1 << count) - 1) << fromIndex;
 }
 
@@ -37,38 +42,49 @@ function buildClearMask(segmentMask) {
     return FULL_MASK ^ segmentMask;
 }
 
-function renderRegisterBits(container, mask, conflictMask = null) {
+// ============================================================================
+// HIỂN THỊ 4 Ô BIT TRỰC QUAN
+// ============================================================================
+function renderRegisterBits(container, mask, conflictMask = null, activeLane = -1) {
     let html = "";
     for (let i = 3; i >= 0; i--) {
         const bitVal = (mask >> i) & 1;
         const isConflict = conflictMask !== null && ((conflictMask >> i) & 1);
+        const isCurrentActive = activeLane === i;
 
-        let borderClass = "border-slate-700 bg-slate-900/80 text-slate-500";
-        let statusBadge = "IDLE";
-        let statusClass = "text-slate-500 bg-slate-800";
+        let borderClass = "border-slate-800 bg-slate-900 text-slate-400";
+        let statusText = "0 (Trống)";
+        let badgeColor = "text-slate-500 bg-slate-800";
 
         if (isConflict) {
-            borderClass = "border-rose-500 bg-rose-950/40 text-rose-400";
-            statusBadge = "CONFLICT";
-            statusClass = "text-rose-400 bg-rose-950/80 border border-rose-800";
+            borderClass = "border-rose-500 bg-rose-950/40 text-rose-300 ring-1 ring-rose-500";
+            statusText = "Trùng!";
+            badgeColor = "text-rose-300 bg-rose-950 border border-rose-800";
         } else if (bitVal === 1) {
-            borderClass = "border-emerald-500 bg-emerald-950/30 text-emerald-400";
-            statusBadge = "ACTIVE";
-            statusClass = "text-emerald-400 bg-emerald-950/80 border border-emerald-800";
+            borderClass = "border-emerald-500 bg-emerald-950/30 text-emerald-300";
+            statusText = "1 (Có người)";
+            badgeColor = "text-emerald-300 bg-emerald-950 border border-emerald-800";
         }
 
+        if (isCurrentActive) {
+            borderClass += " ring-2 ring-cyan-400 scale-105";
+        }
+
+        const segFrom = STATIONS[i] ? STATIONS[i].name : `Ga ${i}`;
+        const segTo = STATIONS[i + 1] ? STATIONS[i + 1].name : `Ga ${i + 1}`;
+
         html += `
-            <div class="relative flex flex-col items-center justify-between p-3 rounded-lg border ${borderClass} transition-all duration-200">
-                <div class="w-full flex items-center justify-between text-[10px] font-mono">
-                    <span class="text-slate-400 font-bold">BIT ${i}</span>
-                    <span class="px-1.5 py-0.5 rounded text-[9px] font-semibold ${statusClass}">${statusBadge}</span>
+            <div id="${typeof container === 'string' ? container : 'reg'}_bit_${i}" 
+                 class="relative flex flex-col items-center justify-between p-3 rounded-lg border ${borderClass} transition-all duration-200">
+                <div class="w-full flex items-center justify-between text-xs font-mono">
+                    <span class="text-slate-400 font-bold">Bit ${i}</span>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ${badgeColor}">${statusText}</span>
                 </div>
-                <div class="my-2 text-3xl font-mono font-extrabold tracking-wider">
+                <div class="my-2 text-3xl font-mono font-extrabold">
                     ${bitVal}
                 </div>
-                <div class="w-full text-center">
-                    <div class="text-[10px] font-medium text-slate-300 truncate">${STATIONS[i].code} - ${STATIONS[i+1].code}</div>
-                    <div class="text-[9px] font-mono text-slate-500 mt-0.5">2^${i} = ${1 << i}</div>
+                <div class="w-full text-center border-t border-slate-800/80 pt-1.5">
+                    <div class="text-[11px] font-medium text-slate-200 truncate">${segFrom} &rarr; ${segTo}</div>
                 </div>
             </div>
         `;
@@ -80,6 +96,9 @@ function renderRegisterBits(container, mask, conflictMask = null) {
     }
 }
 
+// ============================================================================
+// TAB 1: TẠO MẶT NẠ CHẶNG
+// ============================================================================
 function updateMask() {
     const fromEl = document.getElementById("fromIdx");
     const toEl = document.getElementById("toIdx");
@@ -93,11 +112,11 @@ function updateMask() {
     if (from >= to) {
         stepsEl.innerHTML = `
             <div class="p-3 rounded-lg bg-rose-950/30 border border-rose-800 text-rose-300 text-xs">
-                Chỉ số ga xuất phát (fromIndex) phải nhỏ hơn chỉ số ga đến (toIndex).
+                Ga xuất phát phải đi trước ga đến. Vui lòng chọn lại.
             </div>
         `;
         renderRegisterBits("bitDisplay", 0);
-        if (regValueEl) regValueEl.innerText = "0b0000 | 0x00 | DEC: 0";
+        if (regValueEl) regValueEl.innerText = "0b0000 (Số 0)";
         return;
     }
 
@@ -109,39 +128,17 @@ function updateMask() {
 
     if (regValueEl) {
         regValueEl.innerHTML = `
-            <span class="text-emerald-400">0b${toBin(mask)}</span>
+            <span class="text-emerald-400 font-bold">0b${toBin(mask)}</span>
             <span class="text-slate-500">|</span>
-            <span class="text-cyan-400">${toHex(mask)}</span>
-            <span class="text-slate-500">|</span>
-            <span class="text-slate-300">DEC: ${mask}</span>
+            <span class="text-slate-200">Số thập phân: <strong>${mask}</strong></span>
         `;
     }
 
     stepsEl.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono">
-            <div class="p-3 rounded-lg bg-slate-900 border border-slate-800">
-                <div class="text-slate-400 text-[11px] mb-1 font-semibold text-cyan-400">BƯỚC 1: TÍNH ĐỘ DÀI PHÂN ĐOẠN</div>
-                <div class="text-slate-300">segmentCount = toIndex - fromIndex</div>
-                <div class="text-emerald-400 mt-1">${to} - ${from} = <span class="font-bold">${count}</span></div>
-            </div>
-
-            <div class="p-3 rounded-lg bg-slate-900 border border-slate-800">
-                <div class="text-slate-400 text-[11px] mb-1 font-semibold text-cyan-400">BƯỚC 2: TẠO MẶT NẠ BIT 1</div>
-                <div class="text-slate-300">onesMask = (1 &lt;&lt; ${count}) - 1</div>
-                <div class="text-emerald-400 mt-1">${ones} (0b${toBin(ones)})</div>
-            </div>
-
-            <div class="p-3 rounded-lg bg-slate-900 border border-slate-800">
-                <div class="text-slate-400 text-[11px] mb-1 font-semibold text-cyan-400">BƯỚC 3: DỊCH VỀ GA XUẤT PHÁT</div>
-                <div class="text-slate-300">segmentMask = onesMask &lt;&lt; fromIndex</div>
-                <div class="text-emerald-400 mt-1">${ones} &lt;&lt; ${from} = <span class="font-bold text-amber-400">${mask}</span> (0b${toBin(mask)})</div>
-            </div>
-
-            <div class="p-3 rounded-lg bg-slate-900 border border-slate-800">
-                <div class="text-slate-400 text-[11px] mb-1 font-semibold text-cyan-400">BƯỚC 4: KẾT QUẢ MẶT NẠ CHẶNG</div>
-                <div class="text-slate-300">resultMask = segmentMask</div>
-                <div class="text-cyan-400 mt-1">Giá trị cuối: 0x${mask.toString(16).toUpperCase()}</div>
-            </div>
+        <div class="p-3.5 rounded-lg bg-slate-900 border border-slate-800 text-xs leading-relaxed text-slate-300 space-y-1">
+            <div>&bull; Đi từ <strong>${STATIONS[from].name}</strong> đến <strong>${STATIONS[to].name}</strong> gồm <strong>${count} chặng liên tiếp</strong>.</div>
+            <div>&bull; Bật <strong>${count} bit 1</strong> bắt đầu từ vị trí bit <strong>${from}</strong>.</div>
+            <div>&bull; Kết quả chuỗi bit: <strong class="text-cyan-400 font-mono">0b${toBin(mask)}</strong> (lưu trong cơ sở dữ liệu dưới dạng số nguyên: <strong class="text-emerald-400 font-mono">${mask}</strong>).</div>
         </div>
     `;
 
@@ -153,13 +150,18 @@ function updateRouteHighlight(from, to) {
         const segEl = document.getElementById(`routeSeg${i}`);
         if (segEl) {
             if (i >= from && i < to) {
-                segEl.className = "segment-line h-1 flex-1 bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-300";
+                segEl.className = "segment-line h-1 flex-1 bg-cyan-400 transition-all duration-300";
             } else {
                 segEl.className = "segment-line h-1 flex-1 bg-slate-800 transition-all duration-300";
             }
         }
     }
 }
+
+// ============================================================================
+// TAB 2: KIỂM TRA TRÙNG GHẾ (PHÉP AND) + ANIMATION KIỂM TRA TỪNG BIT
+// ============================================================================
+let isAluClockRunning = false;
 
 function updateConflict() {
     const oFromEl = document.getElementById("occupiedFrom");
@@ -179,7 +181,7 @@ function updateConflict() {
     if (oFrom >= oTo || rFrom >= rTo) {
         resultEl.innerHTML = `
             <div class="p-3 rounded-lg bg-rose-950/30 border border-rose-800 text-rose-300 text-xs">
-                Chỉ số ga xuất phát phải nhỏ hơn ga đến.
+                Ga xuất phát phải đi trước ga đến.
             </div>
         `;
         return;
@@ -194,28 +196,47 @@ function updateConflict() {
     renderRegisterBits("conflictBitsB", requested, isConflict ? andResult : null);
 
     formulaEl.innerHTML = `
-        <div class="p-4 rounded-lg bg-slate-900 border border-slate-800 font-mono text-xs space-y-2">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-800 text-slate-400">
-                <span>PHÉP TOÁN KIỂM TRA ĐỒNG THỜI</span>
-                <span class="text-cyan-400 font-bold">BITWISE AND (&)</span>
+        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-xs space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-800">
+                <span class="text-slate-300 font-bold">Phép toán kiểm tra: (Khách A &amp; Khách B) &ne; 0</span>
+                <span class="px-2.5 py-0.5 rounded font-mono font-bold text-xs ${isConflict ? 'bg-rose-950 text-rose-300 border border-rose-800' : 'bg-emerald-950 text-emerald-300 border border-emerald-800'}">
+                    ${isConflict ? 'KẾT QUẢ: TRÙNG CHẶNG' : 'KẾT QUẢ: HỢP LỆ (KHÔNG TRÙNG)'}
+                </span>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-                <div class="p-2 rounded bg-slate-950 border border-slate-800">
-                    <span class="text-slate-500">MẶT NẠ HIỆN HỮU:</span>
-                    <div class="text-slate-200 font-bold mt-1">0b${toBin(occupied)} (${toHex(occupied)})</div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono">
+                <div class="p-2.5 rounded bg-slate-950 border border-slate-800">
+                    <div class="text-slate-400 text-[11px]">Khách A (Đã đặt):</div>
+                    <div class="text-slate-200 font-bold mt-1 text-sm">0b${toBin(occupied)} (${occupied})</div>
                 </div>
-                <div class="p-2 rounded bg-slate-950 border border-slate-800">
-                    <span class="text-slate-500">MẶT NẠ YÊU CẦU:</span>
-                    <div class="text-slate-200 font-bold mt-1">0b${toBin(requested)} (${toHex(requested)})</div>
+
+                <div class="p-2.5 rounded bg-slate-950 border border-slate-800">
+                    <div class="text-slate-400 text-[11px]">Khách B (Muốn mua):</div>
+                    <div class="text-slate-200 font-bold mt-1 text-sm">0b${toBin(requested)} (${requested})</div>
                 </div>
-                <div class="p-2 rounded bg-slate-950 border border-slate-800">
-                    <span class="text-slate-500">KẾT QUẢ GIAO THOA:</span>
-                    <div class="${isConflict ? 'text-rose-400' : 'text-emerald-400'} font-bold mt-1">0b${toBin(andResult)} (${toHex(andResult)})</div>
+
+                <div class="p-2.5 rounded bg-slate-950 border border-slate-800">
+                    <div class="text-slate-400 text-[11px]">Kết quả phép AND (&amp;):</div>
+                    <div class="${isConflict ? 'text-rose-400' : 'text-emerald-400'} font-bold mt-1 text-sm">
+                        0b${toBin(andResult)} (${andResult})
+                    </div>
                 </div>
             </div>
-            <div class="text-[11px] text-slate-400 pt-1">
-                Biểu thức: <code class="text-cyan-300">(occupiedMask & requestedMask) !== 0</code> → <span class="font-bold ${isConflict ? 'text-rose-400' : 'text-emerald-400'}">${isConflict ? 'TRUE (XUNG ĐỘT)' : 'FALSE (HỢP LỆ)'}</span>
+
+            <div class="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800">
+                <div class="text-slate-400">
+                    Nguyên lý: Nếu cả 2 cùng có bit 1 tại một vị trí &rarr; Kết quả AND &gt; 0 &rarr; Bị trùng chỗ.
+                </div>
+                <button type="button" 
+                        id="runAluPulseBtn" 
+                        onclick="animateAluClockCycle(${occupied}, ${requested})"
+                        class="px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition flex items-center gap-1.5">
+                    <span>&#9654;</span> Bấm để xem kiểm tra từng bit (Animation)
+                </button>
             </div>
+
+            <!-- Khung diễn giải từng bit chạy động -->
+            <div id="aluClockTracePanel" class="hidden p-3 rounded bg-slate-950 border border-slate-800 text-xs space-y-1 font-mono"></div>
         </div>
     `;
 
@@ -225,27 +246,92 @@ function updateConflict() {
             if ((andResult >> i) & 1) conflictSegments.push(SEG_LABELS[i]);
         }
         resultEl.innerHTML = `
-            <div class="p-3 rounded-lg bg-rose-950/40 border border-rose-700 text-rose-300 text-xs">
-                <div class="font-bold uppercase">Từ chối: 409 SEGMENT_CONFLICT</div>
-                <div class="mt-1 text-slate-400">
-                    Trùng phân đoạn: <span class="font-mono text-rose-200 font-semibold">${conflictSegments.join(", ")}</span>.
+            <div class="p-3.5 rounded-xl bg-rose-950/40 border border-rose-800 text-rose-300 text-xs">
+                <div class="font-bold uppercase text-rose-200">Không thể đặt vé (Trùng ghế)</div>
+                <div class="mt-1 text-slate-300">
+                    Bị trùng ở đoạn: <strong class="text-rose-300">${conflictSegments.join(", ")}</strong>. Khách B phải chọn ghế khác.
                 </div>
             </div>
         `;
     } else {
         const newMask = occupied | requested;
         resultEl.innerHTML = `
-            <div class="p-3 rounded-lg bg-emerald-950/40 border border-emerald-700 text-emerald-300 text-xs">
-                <div class="font-bold uppercase">Thành công: 201 CREATED</div>
-                <div class="mt-1 text-slate-400">
-                    Không có phân đoạn giao cắt. Cập nhật occupiedMask: 
-                    <code class="font-mono text-cyan-300">0b${toBin(newMask)} (${toHex(newMask)})</code>.
+            <div class="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-800 text-emerald-300 text-xs">
+                <div class="font-bold uppercase text-emerald-200">Đặt vé thành công!</div>
+                <div class="mt-1 text-slate-300">
+                    Hai khách đi 2 chặng hoàn toàn khác nhau, cùng ngồi chung 1 ghế bình thường.
+                </div>
+                <div class="mt-1 text-cyan-300 font-mono text-[11px]">
+                    Ghế sau khi gộp 2 khách: 0b${toBin(occupied)} | 0b${toBin(requested)} = 0b${toBin(newMask)} (Số ${newMask})
                 </div>
             </div>
         `;
     }
 }
 
+// ============================================================================
+// ANIMATION: KIỂM TRA TỪNG BIT ĐỂ THẦY CÔ VÀ BẠN BÈ DỄ HIỂU
+// ============================================================================
+async function animateAluClockCycle(occupied, requested) {
+    if (isAluClockRunning) return;
+    isAluClockRunning = true;
+
+    const btn = document.getElementById("runAluPulseBtn");
+    const tracePanel = document.getElementById("aluClockTracePanel");
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = "Đang kiểm tra từng bit...";
+    }
+    if (tracePanel) {
+        tracePanel.classList.remove("hidden");
+        tracePanel.innerHTML = `<div class="text-cyan-400 font-bold">// Bắt đầu so sánh 4 bit từ b0 đến b3:</div>`;
+    }
+
+    const andResult = occupied & requested;
+
+    for (let lane = 0; lane < 4; lane++) {
+        const bitA = (occupied >> lane) & 1;
+        const bitB = (requested >> lane) & 1;
+        const bitRes = (andResult >> lane) & 1;
+
+        renderRegisterBits("conflictBitsA", occupied, null, lane);
+        renderRegisterBits("conflictBitsB", requested, andResult !== 0 ? andResult : null, lane);
+
+        if (tracePanel) {
+            const laneStatus = bitRes === 1 
+                ? `<span class="text-rose-400 font-bold">1 & 1 = 1 &rarr; TRÙNG NHAU Ở ${SEG_LABELS[lane]}!</span>`
+                : `<span class="text-emerald-400 font-bold">${bitA} & ${bitB} = 0 &rarr; Không trùng</span>`;
+            
+            tracePanel.innerHTML += `
+                <div class="pl-2 border-l-2 ${bitRes === 1 ? 'border-rose-500 text-rose-300' : 'border-emerald-500 text-slate-300'}">
+                    Bit ${lane}: Khách A = <strong>${bitA}</strong>, Khách B = <strong>${bitB}</strong> &rarr; ${laneStatus}
+                </div>
+            `;
+        }
+
+        await new Promise(r => setTimeout(r, 600));
+    }
+
+    renderRegisterBits("conflictBitsA", occupied, null, -1);
+    renderRegisterBits("conflictBitsB", requested, andResult !== 0 ? andResult : null, -1);
+
+    if (tracePanel) {
+        const finalStatus = andResult === 0
+            ? `<span class="text-emerald-400 font-bold">XONG: Tất cả các bit đều không trùng nhau &rarr; ĐẶT VÉ HỢP LỆ!</span>`
+            : `<span class="text-rose-400 font-bold">XONG: Có bit bị trùng &rarr; TỪ CHỐI ĐẶT VÉ!</span>`;
+        tracePanel.innerHTML += `<div class="mt-2 pt-2 border-t border-slate-800">${finalStatus}</div>`;
+    }
+
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `<span>&#9654;</span> Bấm để chạy lại kiểm tra`;
+    }
+    isAluClockRunning = false;
+}
+
+// ============================================================================
+// TAB 3: TRẢ VÉ / HỦY CHẶNG BẰNG PHÉP XOR
+// ============================================================================
 function updateCancel() {
     const occEl = document.getElementById("cancelOccupied");
     const segEl = document.getElementById("cancelSegment");
@@ -258,24 +344,30 @@ function updateCancel() {
     const result = occupied & clearMask;
 
     vizEl.innerHTML = `
-        <div class="p-4 rounded-lg bg-slate-900 border border-slate-800 font-mono text-xs space-y-3">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-xs space-y-2">
+            <div class="text-slate-300 font-bold">Cách giải phóng chặng: Dùng XOR để tạo mặt nạ xóa, sau đó AND với ghế</div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2 font-mono">
                 <div class="p-3 rounded bg-slate-950 border border-slate-800">
-                    <div class="text-slate-400 text-[10px]">BƯỚC 1: TẠO MẶT NẠ XÓA (XOR)</div>
-                    <div class="text-slate-200 mt-1">clearMask = FULL_MASK ^ segmentMask</div>
-                    <div class="text-cyan-400 font-bold mt-1">0b1111 ^ 0b${toBin(segment)} = <span class="text-amber-400">0b${toBin(clearMask)}</span> (${toHex(clearMask)})</div>
+                    <div class="text-slate-400 text-[11px]">Bước 1: Đảo bit chặng cần hủy (phép XOR ^)</div>
+                    <div class="text-cyan-400 font-bold mt-1">
+                        0b1111 ^ 0b${toBin(segment)} = <span class="text-amber-400">0b${toBin(clearMask)}</span>
+                    </div>
+                    <div class="text-[11px] text-slate-500 mt-1">Đổi bit của chặng muốn hủy thành 0.</div>
                 </div>
 
                 <div class="p-3 rounded bg-slate-950 border border-slate-800">
-                    <div class="text-slate-400 text-[10px]">BƯỚC 2: CẬP NHẬT TRẠNG THÁI (AND)</div>
-                    <div class="text-slate-200 mt-1">newMask = occupiedMask & clearMask</div>
-                    <div class="text-emerald-400 font-bold mt-1">0b${toBin(occupied)} & 0b${toBin(clearMask)} = <span class="text-emerald-300">0b${toBin(result)}</span> (${toHex(result)})</div>
+                    <div class="text-slate-400 text-[11px]">Bước 2: Xóa chặng khỏi ghế (phép AND &amp;)</div>
+                    <div class="text-emerald-400 font-bold mt-1">
+                        0b${toBin(occupied)} &amp; 0b${toBin(clearMask)} = <span class="text-emerald-300">0b${toBin(result)}</span>
+                    </div>
+                    <div class="text-[11px] text-slate-500 mt-1">Chỉ xóa đúng chặng đó, các chặng khác giữ nguyên.</div>
                 </div>
             </div>
 
-            <div class="p-2.5 rounded bg-slate-950 text-[11px] flex items-center justify-between">
-                <span class="text-slate-400">Trạng thái sau giải phóng:</span>
-                <span class="text-emerald-400 font-bold">0b${toBin(result)} | ${toHex(result)} | DEC: ${result}</span>
+            <div class="p-2.5 rounded bg-slate-950 border border-slate-800 text-xs flex flex-wrap items-center justify-between gap-2">
+                <span class="text-slate-300">Trạng thái ghế sau khi hủy:</span>
+                <span class="text-emerald-400 font-mono font-bold">0b${toBin(result)} (Số: ${result})</span>
             </div>
         </div>
     `;

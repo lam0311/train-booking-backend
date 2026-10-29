@@ -687,24 +687,28 @@ html.light code.text-amber-400 {
 }
 
 /* ========================================================
-   ĐỊNH HƯỚNG NÂNG CẤP PHA 2 (ROADMAP) TRONG LIGHT MODE
+   ĐỊNH HƯỚNG MỞ RỘNG PHẦN CỨNG (HARDWARE SCALING) TRONG LIGHT MODE
    ======================================================== */
+html.light #hardware-scaling .grid > div,
 html.light #roadmap .grid > div {
     background-color: #ffffff !important;
     border-color: #e2e8f0 !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+html.light #hardware-scaling .grid > div .bg-slate-950,
 html.light #roadmap .grid > div .bg-slate-950 {
     background-color: #f8fafc !important;
     border-color: #e2e8f0 !important;
     color: #1e293b !important;
 }
 
+html.light #hardware-scaling .grid > div strong.text-emerald-400,
 html.light #roadmap .grid > div strong.text-emerald-400 {
     color: #047857 !important;
 }
 
+html.light #hardware-scaling .grid > div .border-t,
 html.light #roadmap .grid > div .border-t.border-slate-800\/80 {
     border-color: #e2e8f0 !important;
     color: #475569 !important;

@@ -1,3 +1,7 @@
+// ============================================================================
+// SƠ ĐỒ TOA TÀU & MÔ PHỎNG GIẢI PHÓNG GHẾ THEO TỪNG GA
+// ============================================================================
+
 const coachSeats = [];
 
 const INITIAL_SEAT_MASKS = [
@@ -8,7 +12,7 @@ const INITIAL_SEAT_MASKS = [
 ];
 
 let currentFilterFrom = 0;
-let currentFilterTo = 2;
+let currentFilterTo = 2; // Hà Nội (0) -> Ninh Bình (2)
 let isTrainMoving = false;
 
 function initSeats() {
@@ -41,7 +45,7 @@ function resetCoachSeats() {
 
     const statusMsg = document.getElementById("trainJourneyStatusMsg");
     if (statusMsg) {
-        statusMsg.innerHTML = '<span class="text-slate-400">Đã đặt lại trạng thái ghế về phân bổ ban đầu. Sẵn sàng cho chuyến tàu mới.</span>';
+        statusMsg.innerHTML = '<span class="text-slate-400 font-mono text-xs">// Đã đặt lại trạng thái 40 ghế về ban đầu.</span>';
     }
 }
 
@@ -68,11 +72,11 @@ function renderModernCoach() {
             if (conflict) {
                 cardClass = "border-rose-900/80 bg-rose-950/30 text-rose-300 opacity-60 hover:opacity-100 hover:border-rose-500";
                 badgeClass = "bg-rose-950 text-rose-400 border border-rose-800";
-                statusText = "TRÙNG";
+                statusText = "Kẹt";
             } else {
-                cardClass = "border-emerald-700/80 bg-emerald-950/20 text-emerald-300 hover:border-emerald-400 hover:scale-105";
+                cardClass = "border-emerald-800/80 bg-emerald-950/20 text-emerald-300 hover:border-emerald-400 hover:scale-105";
                 badgeClass = "bg-emerald-950 text-emerald-400 border border-emerald-800";
-                statusText = "TRỐNG";
+                statusText = "Trống";
             }
 
             let segmentsBar = '<div class="w-full flex h-1.5 gap-0.5 mt-1 rounded overflow-hidden bg-slate-900">';
@@ -89,7 +93,7 @@ function renderModernCoach() {
                     segColor = "bg-emerald-500/50";
                 }
 
-                segmentsBar += `<div class="flex-1 ${segColor}" title="Chặng ${s}: ${isOccupied ? 'Đã chiếm' : 'Khả dụng'}"></div>`;
+                segmentsBar += `<div class="flex-1 ${segColor}"></div>`;
             }
             segmentsBar += '</div>';
 
@@ -102,7 +106,7 @@ function renderModernCoach() {
                         <span class="font-bold">${seat.seatCode}</span>
                         <span class="text-[8px] font-mono px-1 py-0.2 rounded ${badgeClass}">${statusText}</span>
                     </div>
-                    <div class="my-1 text-xs font-mono font-extrabold">${seat.id}</div>
+                    <div class="my-0.5 text-xs font-mono font-bold text-slate-200">#${seat.id}</div>
                     ${segmentsBar}
                 </button>
             `;
@@ -113,28 +117,28 @@ function renderModernCoach() {
         <div class="space-y-4">
             <div class="space-y-2">
                 <div class="flex items-center gap-2">
-                    <span class="w-12 text-[10px] font-mono text-cyan-400 font-bold shrink-0">DÃY A (SỔ)</span>
+                    <span class="w-16 text-xs font-bold text-cyan-400 shrink-0">HÀNG A</span>
                     <div class="flex-1 flex gap-2 overflow-x-auto pb-1">${renderRowHtml(rowA)}</div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="w-12 text-[10px] font-mono text-slate-400 font-bold shrink-0">DÃY B (LỐI)</span>
+                    <span class="w-16 text-xs font-bold text-slate-400 shrink-0">HÀNG B</span>
                     <div class="flex-1 flex gap-2 overflow-x-auto pb-1">${renderRowHtml(rowB)}</div>
                 </div>
             </div>
 
-            <div class="h-6 rounded bg-slate-900/90 border border-slate-800 flex items-center justify-between px-4 text-[10px] font-mono text-slate-500 tracking-widest select-none">
-                <span>CỬA LÊN XUỐNG ĐẦU TOA</span>
-                <span class="text-cyan-500 font-bold">LỐI ĐI TRUNG TÂM</span>
-                <span>CỬA LÊN XUỐNG ĐUÔI TOA</span>
+            <div class="h-6 rounded bg-slate-900/90 border border-slate-800 flex items-center justify-between px-4 text-xs font-mono text-slate-500 select-none">
+                <span>&larr; Đầu toa</span>
+                <span class="text-cyan-400 font-bold">LỐI ĐI GIỮA</span>
+                <span>Cuối toa &rarr;</span>
             </div>
 
             <div class="space-y-2">
                 <div class="flex items-center gap-2">
-                    <span class="w-12 text-[10px] font-mono text-slate-400 font-bold shrink-0">DÃY C (LỐI)</span>
+                    <span class="w-16 text-xs font-bold text-slate-400 shrink-0">HÀNG C</span>
                     <div class="flex-1 flex gap-2 overflow-x-auto pb-1">${renderRowHtml(rowC)}</div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="w-12 text-[10px] font-mono text-cyan-400 font-bold shrink-0">DÃY D (SỔ)</span>
+                    <span class="w-16 text-xs font-bold text-cyan-400 shrink-0">HÀNG D</span>
                     <div class="flex-1 flex gap-2 overflow-x-auto pb-1">${renderRowHtml(rowD)}</div>
                 </div>
             </div>
@@ -171,7 +175,7 @@ function handleFilterJourneyChange() {
     const toVal = parseInt(toEl.value, 10);
 
     if (fromVal >= toVal) {
-        alert("Chỉ số ga xuất phát phải nhỏ hơn ga đến.");
+        alert("Ga xuất phát phải đi trước ga đến.");
         return;
     }
 
@@ -182,6 +186,9 @@ function handleFilterJourneyChange() {
     updateCoachStats();
 }
 
+// ============================================================================
+// BẢNG XEM CHI TIẾT KHI CLICK VÀO 1 GHẾ
+// ============================================================================
 function selectSeatDetail(seatId) {
     const seat = coachSeats.find(s => s.id === seatId);
     const panel = document.getElementById("modernSeatDetailPanel");
@@ -200,7 +207,7 @@ function selectSeatDetail(seatId) {
         const isFilterSeg = s >= currentFilterFrom && s < currentFilterTo;
 
         let blockClass = isOccupied ? "bg-rose-950/40 border-rose-800 text-rose-300" : "bg-emerald-950/30 border-emerald-800 text-emerald-300";
-        let statusBadge = isOccupied ? "ĐÃ CÓ NGƯỜI" : "ĐANG TRỐNG";
+        let statusBadge = isOccupied ? "ĐÃ CÓ NGƯỜI" : "CÒN TRỐNG";
 
         if (isFilterSeg && !isOccupied) {
             statusBadge = "BẠN ĐANG CHỌN";
@@ -208,13 +215,12 @@ function selectSeatDetail(seatId) {
         }
 
         segmentBlocks += `
-            <div class="p-3 rounded-lg border ${blockClass}">
-                <div class="flex items-center justify-between text-[10px] font-mono">
-                    <span class="font-bold">CHẶNG ${s}</span>
-                    <span class="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-900">${statusBadge}</span>
+            <div class="p-2.5 rounded-lg border ${blockClass}">
+                <div class="flex items-center justify-between text-[11px] font-mono">
+                    <span class="font-bold">Chặng ${s}</span>
+                    <span class="px-1.5 py-0.2 rounded text-[10px] bg-slate-900">${statusBadge}</span>
                 </div>
                 <div class="text-xs font-bold mt-1 text-slate-100">${SEG_LABELS[s]}</div>
-                <div class="text-[10px] text-slate-400 font-mono mt-0.5">${STATIONS[s].code} - ${STATIONS[s+1].code}</div>
             </div>
         `;
     }
@@ -223,29 +229,29 @@ function selectSeatDetail(seatId) {
     panel.innerHTML = `
         <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
             <div>
-                <span class="text-[10px] font-mono text-cyan-400 font-bold uppercase tracking-wider">CHI TIẾT VỊ TRÍ GHẾ</span>
-                <h4 class="text-lg font-extrabold text-slate-100 mt-0.5">Ghế ${seat.seatCode} (Số thứ tự: ${seat.id})</h4>
+                <h4 class="text-base font-bold text-slate-100">
+                    Ghế ${seat.seatCode} (Số thứ tự: ${seat.id})
+                </h4>
+                <div class="text-xs text-slate-400 mt-0.5">
+                    Trạng thái hiện tại: <span class="text-emerald-400 font-mono font-bold">0b${toBin(seat.occupiedMask)} (Số ${seat.occupiedMask})</span>
+                </div>
             </div>
-            <div class="flex items-center gap-3">
-                <span class="text-xs font-mono text-slate-400">occupiedMask:</span>
-                <span class="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-emerald-400 font-mono font-bold text-xs">
-                    0b${toBin(seat.occupiedMask)} (${toHex(seat.occupiedMask)})
-                </span>
+            <div>
                 ${hasConflict 
-                    ? '<span class="px-2.5 py-1 rounded bg-rose-950 border border-rose-800 text-rose-300 font-mono text-xs font-bold">XUNG ĐỘT</span>' 
-                    : '<span class="px-2.5 py-1 rounded bg-emerald-950 border border-emerald-800 text-emerald-300 font-mono text-xs font-bold">ĐẶT ĐƯỢC</span>'
+                    ? '<span class="px-3 py-1 rounded bg-rose-950 border border-rose-800 text-rose-300 font-bold text-xs">TRÙNG CHẶNG BẠN CHỌN</span>' 
+                    : '<span class="px-3 py-1 rounded bg-emerald-950 border border-emerald-800 text-emerald-300 font-bold text-xs">CÒN TRỐNG, ĐẶT ĐƯỢC</span>'
                 }
             </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 my-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 my-3">
             ${segmentBlocks}
         </div>
 
-        <div class="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-slate-800 text-xs">
-            <div class="text-slate-400 max-w-xl">
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800 text-xs">
+            <div class="text-slate-400">
                 ${hasConflict 
-                    ? 'Ghế này đã có khách đặt ở chặng bạn chọn. Vui lòng chọn ghế khác màu xanh.' 
+                    ? 'Ghế này đã có khách đặt ở chặng bạn chọn. Vui lòng bấm chọn ghế màu xanh khác.' 
                     : `Ghế trống cho chặng từ <strong>${STATIONS[currentFilterFrom].name}</strong> đến <strong>${STATIONS[currentFilterTo].name}</strong>.`
                 }
             </div>
@@ -253,8 +259,8 @@ function selectSeatDetail(seatId) {
             ${!hasConflict ? `
                 <button type="button" 
                         onclick="testBookCurrentSeat(${seat.id})"
-                        class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold font-mono transition">
-                    ĐẶT THỬ GHẾ NÀY (BITWISE ALLOCATE)
+                        class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold transition">
+                    Thử đặt ghế này (Gộp bit)
                 </button>
             ` : ''}
         </div>
@@ -273,11 +279,13 @@ function testBookCurrentSeat(seatId) {
     selectSeatDetail(seatId);
 }
 
+// ============================================================================
+// MÔ PHỎNG TÀU CHẠY & TỰ ĐỘNG NHẢ GHẾ TẠI MỖI GA
+// ============================================================================
 async function simulateLiveTrainJourney() {
     if (isTrainMoving) return;
     isTrainMoving = true;
 
-    // Reset lại trạng thái ghế về ban đầu trước khi đoàn tàu xuất phát
     resetCoachSeats();
 
     const btn = document.getElementById("trainJourneyBtn");
@@ -288,11 +296,11 @@ async function simulateLiveTrainJourney() {
     }
 
     const stationsList = [
-        { idx: 0, name: "Hà Nội", action: "Đoàn tàu SE1 xuất phát từ Ga Hà Nội. Khách chặng 0 đã ổn định chỗ ngồi." },
-        { idx: 1, name: "Phủ Lý", action: "Đến Ga Phủ Lý. Khách chặng HN - PL xuống tàu (nhả bit), khách chặng mới lên tàu." },
-        { idx: 2, name: "Ninh Bình", action: "Đến Ga Ninh Bình. Khách chặng PL - NB xuống tàu. Ghế được giải phóng tiếp tục đón khách mới." },
-        { idx: 3, name: "Thanh Hóa", action: "Đến Ga Thanh Hóa. Khách chặng NB - TH hoàn tất hành trình." },
-        { idx: 4, name: "Vinh", action: "Cập bến Ga Vinh (Ga cuối). Toàn bộ ghế giải phóng về trạng thái 0b0000." }
+        { idx: 0, name: "Hà Nội", desc: "Tàu xuất phát từ Ga Hà Nội. Các khách chặng đầu đã ngồi vào chỗ." },
+        { idx: 1, name: "Phủ Lý", desc: "Đến Ga Phủ Lý: Khách chặng Hà Nội - Phủ Lý xuống tàu &rarr; Ghế tự động nhả (đổi sang xanh)!" },
+        { idx: 2, name: "Ninh Bình", desc: "Đến Ga Ninh Bình: Khách chặng Phủ Lý - Ninh Bình xuống tàu &rarr; Nhả tiếp ghế!" },
+        { idx: 3, name: "Thanh Hóa", desc: "Đến Ga Thanh Hóa: Khách chặng Ninh Bình - Thanh Hóa xuống tàu!" },
+        { idx: 4, name: "Vinh", desc: "Cập bến Ga Vinh (Ga cuối): Toàn bộ ghế được giải phóng sạch sẽ cho chuyến mới." }
     ];
 
     for (let i = 0; i < stationsList.length; i++) {
@@ -301,8 +309,8 @@ async function simulateLiveTrainJourney() {
         if (statusMsg) {
             statusMsg.innerHTML = `
                 <div class="flex items-center gap-2 text-cyan-400 font-mono text-xs font-bold">
-                    <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
-                    <span>VỊ TRÍ: GA ${st.idx} (${st.name}) - ${st.action}</span>
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                    <span>GA ${st.idx}: ${st.name} &rarr; ${st.desc}</span>
                 </div>
             `;
         }
@@ -319,20 +327,20 @@ async function simulateLiveTrainJourney() {
             updateCoachStats();
         }
 
-        await new Promise(r => setTimeout(r, 1300));
+        await new Promise(r => setTimeout(r, 1400));
     }
 
     if (statusMsg) {
         statusMsg.innerHTML = `
             <div class="text-emerald-400 font-mono text-xs font-bold">
-                HOÀN TẤT: Đoàn tàu SE1 đã đến Ga Vinh. Tất cả ghế đã giải phóng xong.
+                HOÀN TẤT: Tàu đã đến ga Vinh. Toàn bộ 40 ghế đã được nhả xong.
             </div>
         `;
     }
 
     if (btn) {
         btn.disabled = false;
-        btn.innerText = "Khởi Động Lại Mô Phỏng Đoàn Tàu (Live Journey)";
+        btn.innerText = "Chạy lại chuyến tàu";
     }
     isTrainMoving = false;
 }
@@ -378,7 +386,7 @@ async function fetchLiveSeatsFromDatabase() {
                 statusMsg.innerHTML = `
                     <div class="text-emerald-400 font-mono text-xs font-bold flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                        <span>ĐÃ ĐỒNG BỘ THÀNH CÔNG: Tải trạng thái 40 ghế thực tế từ MongoDB (Chuyến SE1-2026, Mask: ${json.data?.requestedMask || '--'}).</span>
+                        <span>Đã tải 40 ghế từ Database thực tế (Chuyến SE1-2026).</span>
                     </div>
                 `;
             }
@@ -388,17 +396,14 @@ async function fetchLiveSeatsFromDatabase() {
             statusMsg.innerHTML = `
                 <div class="text-amber-400 font-mono text-xs flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-                    <span>Không kết nối được Backend (${err.message}). Hệ thống đang dùng dữ liệu mô phỏng Offline.</span>
+                    <span>Đang dùng dữ liệu mô phỏng Offline (${err.message}). Vẫn test được đầy đủ các tính năng.</span>
                 </div>
             `;
         }
     } finally {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = `
-                <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
-                TẢI TỪ DATABASE (SE1-2026)
-            `;
+            btn.innerHTML = `TẢI TỪ DATABASE`;
         }
     }
 }

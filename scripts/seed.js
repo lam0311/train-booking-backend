@@ -51,7 +51,7 @@ const TRIP_SCHEDULES = [
 
 const seedDatabase = async () => {
     try {
-        console.log("Đang kết nối Database để nạp dữ liệu mẫu...");
+        console.log("Đang kết nối Database để nạp dữ liệu mẫu");
         await connectDatabase(process.env.MONGODB_URL);
 
         await SeatInventory.deleteMany({});
@@ -87,7 +87,7 @@ const seedDatabase = async () => {
             }
         }
 
-        // Seed thêm chuyến cố định SE1-2026 phục vụ kiểm thử tải (Kaggle Benchmark)
+        // Seed thêm chuyến cố định SE1-2026 phục vụ kiểm thử tải
         tripsToCreate.push({
             tripId: BENCHMARK_TRIP_ID,
             date: startDate.toISOString().split("T")[0],
@@ -108,7 +108,7 @@ const seedDatabase = async () => {
 
         console.log(`Đã tạo ${tripsToCreate.length} chuyến tàu`);
         console.log(`Đã tạo ${seatInventoriesToCreate.length} bản ghi ghế`);
-        console.log("THÀNH CÔNG NẠP DỮ LIỆU MẪU");
+        console.log("thành công nạp dữ liệu mẫu");
     } catch (error) {
         console.error("Lỗi khi seed dữ liệu:", error);
         process.exitCode = 1;

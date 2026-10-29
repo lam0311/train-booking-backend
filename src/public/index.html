@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Quản Lý & Đặt Vé Tàu Hỏa | Thuật Toán Bitmask & Kiến Trúc Hexagonal</title>
+    <title>Demo Thuật Toán Bitmask Đặt Vé Tàu</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -54,22 +54,22 @@
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-cyan-500/20 selection:text-cyan-300">
 
-    <!-- Navigation -->
-    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80 transition-all duration-300">
+    <!-- Navigation Bar -->
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 bg-slate-950/90 backdrop-blur-md border-b border-slate-800 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]"></div>
-                <span class="font-mono text-sm font-bold tracking-wider text-slate-200">HỆ THỐNG ĐẶT VÉ TÀU</span>
+                <div class="w-2.5 h-2.5 rounded-full bg-cyan-400"></div>
+                <span class="font-mono text-sm font-bold tracking-wider text-slate-200">DEMO THUẬT TOÁN BITMASK</span>
             </div>
             
             <div class="hidden lg:flex items-center space-x-5 text-xs font-mono font-medium nav-links">
                 <a href="#hero" class="text-slate-400 hover:text-cyan-400 py-1 transition">TỔNG QUAN</a>
-                <a href="#alu-simulator" class="text-slate-400 hover:text-cyan-400 py-1 transition">THUẬT TOÁN BITMASK</a>
-                <a href="#coach-floorplan" class="text-slate-400 hover:text-cyan-400 py-1 transition">SƠ ĐỒ TOA TÀU</a>
-                <a href="#concurrency-test" class="text-slate-400 hover:text-cyan-400 py-1 transition">KIỂM THỬ ĐỒNG THỜI</a>
-                <a href="#security-hardening" class="text-slate-400 hover:text-cyan-400 py-1 transition">BẢO MẬT HỆ THỐNG</a>
-                <a href="#architecture" class="text-slate-400 hover:text-cyan-400 py-1 transition">KIẾN TRÚC</a>
-                <a href="#roadmap" class="text-slate-400 hover:text-cyan-400 py-1 transition">ĐỊNH HƯỚNG MỞ RỘNG</a>
+                <a href="#alu-simulator" class="text-slate-400 hover:text-cyan-400 py-1 transition">1. PHÉP TOÁN BIT</a>
+                <a href="#coach-floorplan" class="text-slate-400 hover:text-cyan-400 py-1 transition">2. SƠ ĐỒ TOA TÀU</a>
+                <a href="#concurrency-test" class="text-slate-400 hover:text-cyan-400 py-1 transition">3. TRANH CHẤP VÉ</a>
+                <a href="#architecture" class="text-slate-400 hover:text-cyan-400 py-1 transition">4. LUỒNG XỬ LÝ</a>
+                <a href="#live-console" class="text-slate-400 hover:text-cyan-400 py-1 transition">5. GỌI API</a>
+                <a href="#roadmap" class="text-slate-400 hover:text-cyan-400 py-1 transition">6. ĐỊNH HƯỚNG PHA 2</a>
             </div>
 
             <div class="flex items-center gap-2">
@@ -90,136 +90,103 @@
     </nav>
 
     <!-- Hero Section -->
-    <section id="hero" class="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div class="text-center max-w-4xl mx-auto">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-950/20 text-cyan-400 text-xs font-mono mb-6">
+    <section id="hero" class="relative pt-28 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div class="text-center max-w-3xl mx-auto">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-950/30 text-cyan-400 text-xs font-mono mb-4">
                 <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-                ĐỒ ÁN KIẾN TRÚC MÁY TÍNH - HỆ THỐNG QUẢN LÝ VÉ TÀU HỎA
+                DEMO THUẬT TOÁN // ĐỒ ÁN KIẾN TRÚC MÁY TÍNH
             </div>
             
-            <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-100 leading-tight">
-                Hệ Thống Quản Lý & Đặt Vé Tàu Hỏa<br>
-                <span class="bg-gradient-to-r from-cyan-400 via-sky-400 to-indigo-400 bg-clip-text text-transparent">
-                    Tối Ưu Phân Bổ Chặng Bằng Thuật Toán Bitmask
-                </span>
+            <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-100">
+                Mô Phỏng Đặt Vé Tàu Bằng Thuật Toán Bitmask
             </h1>
 
-            <p class="mt-6 text-base sm:text-lg text-slate-400 leading-relaxed max-w-3xl mx-auto">
-                Giải pháp phân bổ ghế linh hoạt theo từng chặng trên các chuyến tàu dài.
-                Sử dụng các phép toán bit nhị phân để kiểm tra và giữ chỗ tức thì, xử lý tranh chấp vé đồng thời bằng toán tử nguyên tử 
-                 
-                <span class="font-mono text-emerald-400 font-semibold">$bitsAllClear</span> của cơ sở dữ liệu và vận hành theo mô hình kiến trúc Hexagonal độc lập, rõ ràng.
+            <p class="mt-3 text-sm text-slate-400 leading-relaxed max-w-2xl mx-auto">
+                Trang web dùng để kiểm thử và minh họa trực quan cách biểu diễn chặng tàu bằng chuỗi 4 bit nhị phân, kiểm tra trùng ghế bằng phép AND và xử lý tranh chấp khi nhiều người cùng đặt 1 vị trí ghế.
             </p>
 
-            <div class="mt-8 flex flex-wrap items-center justify-center gap-4">
-                <a href="#alu-simulator" class="px-5 py-2.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-semibold transition shadow-[0_0_20px_rgba(56,189,248,0.3)]">
-                    Xem Thuật Toán Bitmask
+            <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <a href="#alu-simulator" class="px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold transition">
+                    1. Thử Phép Toán Bit
                 </a>
-                <a href="#coach-floorplan" class="px-5 py-2.5 rounded-lg border border-slate-700 bg-slate-900/80 hover:border-slate-500 text-slate-200 text-sm font-medium transition">
-                    Xem Sơ Đồ Khoang Ghế
+                <a href="#coach-floorplan" class="px-4 py-2 rounded-lg border border-slate-700 bg-slate-900 hover:border-slate-500 text-slate-200 text-xs font-medium transition">
+                    2. Xem Sơ Đồ Toa Tàu
+                </a>
+                <a href="#concurrency-test" class="px-4 py-2 rounded-lg border border-slate-700 bg-slate-900 hover:border-slate-500 text-slate-200 text-xs font-medium transition">
+                    3. Test Tranh Chấp 100 Vé
                 </a>
             </div>
         </div>
 
-        <!-- Sơ đồ mạng lưới 5 ga và 4 phân đoạn -->
-        <div class="mt-16 p-6 rounded-xl border border-slate-800 bg-slate-900/40 backdrop-blur">
-            <div class="text-xs font-mono text-slate-400 mb-4 flex items-center justify-between">
-                <span>HÀNH TRÌNH ĐOÀN TÀU (5 GA // 4 PHÂN ĐOẠN ĐỘC LẬP)</span>
-                <span class="text-cyan-400">CHUYẾN SE1-2026</span>
+        <!-- Sơ đồ mạng lưới 5 ga và 4 phân đoạn chặng -->
+        <div class="mt-10 p-5 rounded-xl border border-slate-800 bg-slate-900/50 backdrop-blur">
+            <div class="text-xs font-mono text-slate-400 mb-3 flex items-center justify-between">
+                <span>HÀNH TRÌNH TÀU SE1 (5 GA // 4 CHẶNG: BIT 0 &rarr; BIT 3)</span>
+                <span class="text-cyan-400 font-bold">TUYẾN HÀ NỘI - VINH</span>
             </div>
             
             <div class="flex items-center justify-between gap-1 sm:gap-2">
                 <div class="flex flex-col items-center">
-                    <div class="w-4 h-4 rounded-full border-2 border-cyan-400 bg-slate-950 shadow-[0_0_10px_rgba(56,189,248,0.6)]"></div>
-                    <div class="text-xs font-bold text-slate-200 mt-2">Hà Nội</div>
-                    <div class="text-[10px] font-mono text-cyan-400">GA 0 (HAN)</div>
+                    <div class="w-3.5 h-3.5 rounded-full border-2 border-cyan-400 bg-slate-950"></div>
+                    <div class="text-xs font-bold text-slate-200 mt-1.5">Hà Nội</div>
+                    <div class="text-[10px] font-mono text-cyan-400">Ga 0</div>
                 </div>
                 
                 <div id="routeSeg0" class="segment-line h-1 flex-1 bg-slate-800 transition-all duration-300"></div>
 
                 <div class="flex flex-col items-center">
-                    <div class="w-3.5 h-3.5 rounded-full border-2 border-slate-500 bg-slate-950"></div>
-                    <div class="text-xs font-semibold text-slate-300 mt-2">Nam Định</div>
-                    <div class="text-[10px] font-mono text-slate-500">GA 1 (NDI)</div>
+                    <div class="w-3 h-3 rounded-full border-2 border-slate-500 bg-slate-950"></div>
+                    <div class="text-xs font-medium text-slate-300 mt-1.5">Phủ Lý</div>
+                    <div class="text-[10px] font-mono text-slate-400">Ga 1</div>
                 </div>
 
                 <div id="routeSeg1" class="segment-line h-1 flex-1 bg-slate-800 transition-all duration-300"></div>
 
                 <div class="flex flex-col items-center">
-                    <div class="w-3.5 h-3.5 rounded-full border-2 border-slate-500 bg-slate-950"></div>
-                    <div class="text-xs font-semibold text-slate-300 mt-2">Vinh</div>
-                    <div class="text-[10px] font-mono text-slate-500">GA 2 (VII)</div>
+                    <div class="w-3 h-3 rounded-full border-2 border-slate-500 bg-slate-950"></div>
+                    <div class="text-xs font-medium text-slate-300 mt-1.5">Ninh Bình</div>
+                    <div class="text-[10px] font-mono text-slate-400">Ga 2</div>
                 </div>
 
                 <div id="routeSeg2" class="segment-line h-1 flex-1 bg-slate-800 transition-all duration-300"></div>
 
                 <div class="flex flex-col items-center">
-                    <div class="w-3.5 h-3.5 rounded-full border-2 border-slate-500 bg-slate-950"></div>
-                    <div class="text-xs font-semibold text-slate-300 mt-2">Huế</div>
-                    <div class="text-[10px] font-mono text-slate-500">GA 3 (HUE)</div>
+                    <div class="w-3 h-3 rounded-full border-2 border-slate-500 bg-slate-950"></div>
+                    <div class="text-xs font-medium text-slate-300 mt-1.5">Thanh Hóa</div>
+                    <div class="text-[10px] font-mono text-slate-400">Ga 3</div>
                 </div>
 
                 <div id="routeSeg3" class="segment-line h-1 flex-1 bg-slate-800 transition-all duration-300"></div>
 
                 <div class="flex flex-col items-center">
-                    <div class="w-4 h-4 rounded-full border-2 border-cyan-400 bg-slate-950 shadow-[0_0_10px_rgba(56,189,248,0.6)]"></div>
-                    <div class="text-xs font-bold text-slate-200 mt-2">Đà Nẵng</div>
-                    <div class="text-[10px] font-mono text-cyan-400">GA 4 (DAN)</div>
+                    <div class="w-3.5 h-3.5 rounded-full border-2 border-cyan-400 bg-slate-950"></div>
+                    <div class="text-xs font-bold text-slate-200 mt-1.5">Vinh</div>
+                    <div class="text-[10px] font-mono text-cyan-400">Ga 4</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Metrics -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 reveal">
-            <div class="p-5 rounded-xl border border-slate-800 bg-slate-900/50">
-                <div class="text-[11px] font-mono text-slate-400 uppercase">Thời Gian Kiểm Tra</div>
-                <div class="text-3xl font-extrabold font-mono text-cyan-400 mt-2">Tức Thì</div>
-                <div class="text-xs text-slate-500 mt-1">Tính toán trực tiếp bằng phép toán bit</div>
-            </div>
-
-            <div class="p-5 rounded-xl border border-slate-800 bg-slate-900/50">
-                <div class="text-[11px] font-mono text-slate-400 uppercase">Biểu Diễn Trạng Thái</div>
-                <div class="text-3xl font-extrabold font-mono text-emerald-400 mt-2">4 Bit</div>
-                <div class="text-xs text-slate-500 mt-1">Gói gọn trạng thái cả 4 chặng tàu (0–15)</div>
-            </div>
-
-            <div class="p-5 rounded-xl border border-slate-800 bg-slate-900/50">
-                <div class="text-[11px] font-mono text-slate-400 uppercase">Kiểm Soát Đồng Thời</div>
-                <div class="text-3xl font-extrabold font-mono text-indigo-400 mt-2">Lock-Free</div>
-                <div class="text-xs text-slate-500 mt-1">Cập nhật nguyên tử qua $bitsAllClear</div>
-            </div>
-
-            <div class="p-5 rounded-xl border border-slate-800 bg-slate-900/50">
-                <div class="text-[11px] font-mono text-slate-400 uppercase">Bảo Mật Hệ Thống</div>
-                <div class="text-3xl font-extrabold font-mono text-amber-400 mt-2">Đa Lớp</div>
-                <div class="text-xs text-slate-500 mt-1">Helmet + JWT + Bcrypt + Giới hạn tần suất</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Thuật Toán Bitmask -->
-    <section id="alu-simulator" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <!-- SECTION 1: BỘ MÔ PHỎNG CÁC PHÉP TOÁN BITMASK -->
+    <section id="alu-simulator" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div class="reveal">
-            <div class="text-xs font-mono text-cyan-400 uppercase tracking-wider">NGUYÊN LÝ HOẠT ĐỘNG // THUẬT TOÁN BITMASK</div>
-            <h2 class="text-2xl sm:text-3xl font-bold text-slate-100 mt-1">Mô Phỏng Thuật Toán Phân Bổ Chặng Bằng Bitmask</h2>
-            <p class="text-sm text-slate-400 mt-2 max-w-2xl">
-                Trực quan hóa cách biểu diễn các chặng tàu bằng chuỗi 4 bit nhị phân: tạo mặt nạ chặng, 
-                kiểm tra trùng lặp ghế bằng phép AND và thu hồi ghế khi hủy vé bằng phép XOR.
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-100">1. Minh Họa Các Phép Toán Bitmask</h2>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl">
+                Xem cách đổi chặng tàu thành số nhị phân 4 bit, kiểm tra trùng ghế bằng phép AND và trả lại ghế bằng phép XOR.
             </p>
         </div>
 
-        <div class="mt-8 p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur reveal">
-            <div class="flex items-center gap-2 pb-4 border-b border-slate-800 text-xs font-mono">
-                <button type="button" class="tab-btn active px-4 py-2 rounded-lg border border-cyan-500 bg-slate-900 text-cyan-400 font-semibold transition" onclick="switchTab('build', event)">
-                    01. TẠO MẶT NẠ CHẶNG
+        <div class="mt-5 p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur reveal">
+            <!-- 3 Tabs đơn giản -->
+            <div class="flex flex-wrap items-center gap-2 pb-4 border-b border-slate-800 text-xs font-mono">
+                <button type="button" class="tab-btn active px-3.5 py-2 rounded-lg border border-cyan-500 bg-slate-900 text-cyan-400 font-bold transition" onclick="switchTab('build', event)">
+                    1. Tạo chuỗi bit (Tạo Mask)
                 </button>
-                <button type="button" class="tab-btn px-4 py-2 rounded-lg border border-transparent text-slate-400 hover:text-slate-200 transition" onclick="switchTab('conflict', event)">
-                    02. KIỂM TRA TRÙNG CHẶNG (PHÉP AND)
+                <button type="button" class="tab-btn px-3.5 py-2 rounded-lg border border-transparent text-slate-400 hover:text-slate-200 transition" onclick="switchTab('conflict', event)">
+                    2. Kiểm tra trùng ghế (Phép AND)
                 </button>
-                <button type="button" class="tab-btn px-4 py-2 rounded-lg border border-transparent text-slate-400 hover:text-slate-200 transition" onclick="switchTab('cancel', event)">
-                    03. HỦY CHẶNG & TRẢ GHẾ (PHÉP XOR)
+                <button type="button" class="tab-btn px-3.5 py-2 rounded-lg border border-transparent text-slate-400 hover:text-slate-200 transition" onclick="switchTab('cancel', event)">
+                    3. Hủy vé / Trả ghế (Phép XOR)
                 </button>
             </div>
 
@@ -227,30 +194,30 @@
             <div id="tab-build" class="tab-content active pt-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label for="fromIdx" class="block text-xs font-mono text-slate-400 mb-2 uppercase">Ga khởi hành (fromIndex)</label>
-                        <select id="fromIdx" onchange="updateMask()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 font-mono">
-                            <option value="0">Ga 0 — Hà Nội (HAN)</option>
-                            <option value="1">Ga 1 — Nam Định (NDI)</option>
-                            <option value="2">Ga 2 — Vinh (VII)</option>
-                            <option value="3">Ga 3 — Huế (HUE)</option>
+                        <label for="fromIdx" class="block text-xs font-mono text-slate-400 mb-1.5">Ga khởi hành (Ga đi)</label>
+                        <select id="fromIdx" onchange="updateMask()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono">
+                            <option value="0">Ga 0 — Hà Nội</option>
+                            <option value="1">Ga 1 — Phủ Lý</option>
+                            <option value="2">Ga 2 — Ninh Bình</option>
+                            <option value="3">Ga 3 — Thanh Hóa</option>
                         </select>
                     </div>
 
                     <div>
-                        <label for="toIdx" class="block text-xs font-mono text-slate-400 mb-2 uppercase">Ga kết thúc (toIndex)</label>
-                        <select id="toIdx" onchange="updateMask()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 font-mono">
-                            <option value="1">Ga 1 — Nam Định (NDI)</option>
-                            <option value="2" selected>Ga 2 — Vinh (VII)</option>
-                            <option value="3">Ga 3 — Huế (HUE)</option>
-                            <option value="4">Ga 4 — Đà Nẵng (DAN)</option>
+                        <label for="toIdx" class="block text-xs font-mono text-slate-400 mb-1.5">Ga kết thúc (Ga đến)</label>
+                        <select id="toIdx" onchange="updateMask()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono">
+                            <option value="1">Ga 1 — Phủ Lý</option>
+                            <option value="2" selected>Ga 2 — Ninh Bình</option>
+                            <option value="3">Ga 3 — Thanh Hóa</option>
+                            <option value="4">Ga 4 — Vinh</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="my-6">
-                    <div class="flex items-center justify-between text-xs font-mono mb-3">
-                        <span class="text-slate-400">TRẠNG THÁI MẶT NẠ 4 BIT (SEGMENT MASK):</span>
-                        <div id="regSummaryValue" class="text-emerald-400 font-bold">0b0011 | 0x03 | DEC: 3</div>
+                <div class="my-5">
+                    <div class="flex items-center justify-between text-xs font-mono mb-2.5">
+                        <span class="text-slate-400 font-bold">TRẠNG THÁI 4 BIT:</span>
+                        <div id="regSummaryValue" class="text-emerald-400 font-bold">0b0011 | Số: 3</div>
                     </div>
                     <div id="bitDisplay" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
                 </div>
@@ -258,51 +225,51 @@
                 <div id="formulaSteps"></div>
             </div>
 
-            <!-- Tab 2: Kiểm tra xung đột -->
+            <!-- Tab 2: Kiểm tra trùng vé bằng phép AND -->
             <div id="tab-conflict" class="tab-content pt-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     <div>
-                        <label for="occupiedFrom" class="block text-xs font-mono text-slate-400 mb-1.5">Khách A (Từ)</label>
+                        <label for="occupiedFrom" class="block text-xs font-mono text-slate-400 mb-1.5">Khách A đã ngồi (Ga Đi)</label>
                         <select id="occupiedFrom" onchange="updateConflict()" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 font-mono">
                             <option value="0">Ga 0 — Hà Nội</option>
-                            <option value="1">Ga 1 — Nam Định</option>
-                            <option value="2">Ga 2 — Vinh</option>
+                            <option value="1">Ga 1 — Phủ Lý</option>
+                            <option value="2">Ga 2 — Ninh Bình</option>
                         </select>
                     </div>
                     <div>
-                        <label for="occupiedTo" class="block text-xs font-mono text-slate-400 mb-1.5">Khách A (Đến)</label>
+                        <label for="occupiedTo" class="block text-xs font-mono text-slate-400 mb-1.5">Khách A đã ngồi (Ga Đến)</label>
                         <select id="occupiedTo" onchange="updateConflict()" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 font-mono">
-                            <option value="2" selected>Ga 2 — Vinh</option>
-                            <option value="3">Ga 3 — Huế</option>
-                            <option value="4">Ga 4 — Đà Nẵng</option>
+                            <option value="2" selected>Ga 2 — Ninh Bình</option>
+                            <option value="3">Ga 3 — Thanh Hóa</option>
+                            <option value="4">Ga 4 — Vinh</option>
                         </select>
                     </div>
                     <div>
-                        <label for="requestFrom" class="block text-xs font-mono text-slate-400 mb-1.5">Khách B Yêu Cầu (Từ)</label>
+                        <label for="requestFrom" class="block text-xs font-mono text-slate-400 mb-1.5">Khách B muốn mua (Ga Đi)</label>
                         <select id="requestFrom" onchange="updateConflict()" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 font-mono">
                             <option value="0">Ga 0 — Hà Nội</option>
-                            <option value="1">Ga 1 — Nam Định</option>
-                            <option value="2" selected>Ga 2 — Vinh</option>
-                            <option value="3">Ga 3 — Huế</option>
+                            <option value="1">Ga 1 — Phủ Lý</option>
+                            <option value="2" selected>Ga 2 — Ninh Bình</option>
+                            <option value="3">Ga 3 — Thanh Hóa</option>
                         </select>
                     </div>
                     <div>
-                        <label for="requestTo" class="block text-xs font-mono text-slate-400 mb-1.5">Khách B Yêu Cầu (Đến)</label>
+                        <label for="requestTo" class="block text-xs font-mono text-slate-400 mb-1.5">Khách B muốn mua (Ga Đến)</label>
                         <select id="requestTo" onchange="updateConflict()" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 font-mono">
-                            <option value="2">Ga 2 — Vinh</option>
-                            <option value="3">Ga 3 — Huế</option>
-                            <option value="4" selected>Ga 4 — Đà Nẵng</option>
+                            <option value="2">Ga 2 — Ninh Bình</option>
+                            <option value="3">Ga 3 — Thanh Hóa</option>
+                            <option value="4" selected>Ga 4 — Vinh</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 my-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 my-5">
                     <div>
-                        <div class="text-[11px] font-mono text-slate-400 mb-2">MẶT NẠ ĐÃ ĐẶT (KHÁCH A - OCCUPIED MASK):</div>
+                        <div class="text-xs font-mono text-slate-400 mb-2 font-bold">CHUỖI BIT CỦA KHÁCH A (ĐÃ CÓ NGƯỜI):</div>
                         <div id="conflictBitsA" class="grid grid-cols-4 gap-2"></div>
                     </div>
                     <div>
-                        <div class="text-[11px] font-mono text-slate-400 mb-2">MẶT NẠ ĐANG YÊU CẦU (KHÁCH B - REQUEST MASK):</div>
+                        <div class="text-xs font-mono text-slate-400 mb-2 font-bold">CHUỖI BIT CỦA KHÁCH B (ĐANG YÊU CẦU):</div>
                         <div id="conflictBitsB" class="grid grid-cols-4 gap-2"></div>
                     </div>
                 </div>
@@ -311,67 +278,65 @@
                 <div id="conflictResult" class="mt-4"></div>
             </div>
 
-            <!-- Tab 3: Hủy vé -->
+            <!-- Tab 3: Hủy vé & Trả ghế -->
             <div id="tab-cancel" class="tab-content pt-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label for="cancelOccupied" class="block text-xs font-mono text-slate-400 mb-2 uppercase">Trạng thái ghế hiện tại (occupiedMask)</label>
-                        <select id="cancelOccupied" onchange="updateCancel()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 font-mono">
-                            <option value="3">3 (0011) — Đang có khách Hà Nội -> Vinh</option>
-                            <option value="7">7 (0111) — Đang có khách Hà Nội -> Huế</option>
-                            <option value="15">15 (1111) — Đang có khách Toàn tuyến (Hà Nội -> Đà Nẵng)</option>
-                            <option value="6">6 (0110) — Đang có khách Nam Định -> Huế</option>
-                            <option value="12">12 (1100) — Đang có khách Vinh -> Đà Nẵng</option>
+                        <label for="cancelOccupied" class="block text-xs font-mono text-slate-400 mb-1.5">Ghế hiện tại đang có người chặng nào?</label>
+                        <select id="cancelOccupied" onchange="updateCancel()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 font-mono">
+                            <option value="3">0011 (Số 3) — Đang có khách Hà Nội &rarr; Ninh Bình</option>
+                            <option value="7">0111 (Số 7) — Đang có khách Hà Nội &rarr; Thanh Hóa</option>
+                            <option value="15">1111 (Số 15) — Đang có khách Toàn tuyến (Hà Nội &rarr; Vinh)</option>
+                            <option value="6">0110 (Số 6) — Đang có khách Phủ Lý &rarr; Thanh Hóa</option>
+                            <option value="12">1100 (Số 12) — Đang có khách Ninh Bình &rarr; Vinh</option>
                         </select>
                     </div>
 
                     <div>
-                        <label for="cancelSegment" class="block text-xs font-mono text-slate-400 mb-2 uppercase">Vé yêu cầu hủy (segmentMask)</label>
-                        <select id="cancelSegment" onchange="updateCancel()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 font-mono">
-                            <option value="1">1 (0001) — Hủy chặng Hà Nội -> Nam Định</option>
-                            <option value="2">2 (0010) — Hủy chặng Nam Định -> Vinh</option>
-                            <option value="3" selected>3 (0011) — Hủy chặng Hà Nội -> Vinh</option>
-                            <option value="4">4 (0100) — Hủy chặng Vinh -> Huế</option>
-                            <option value="12">12 (1100) — Hủy chặng Vinh -> Đà Nẵng</option>
+                        <label for="cancelSegment" class="block text-xs font-mono text-slate-400 mb-1.5">Khách yêu cầu hủy chặng nào?</label>
+                        <select id="cancelSegment" onchange="updateCancel()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 font-mono">
+                            <option value="1">0001 (Số 1) — Hủy đoạn Hà Nội &rarr; Phủ Lý</option>
+                            <option value="2">0010 (Số 2) — Hủy đoạn Phủ Lý &rarr; Ninh Bình</option>
+                            <option value="3" selected>0011 (Số 3) — Hủy đoạn Hà Nội &rarr; Ninh Bình</option>
+                            <option value="4">0100 (Số 4) — Hủy đoạn Ninh Bình &rarr; Thanh Hóa</option>
+                            <option value="12">1100 (Số 12) — Hủy đoạn Ninh Bình &rarr; Vinh</option>
                         </select>
                     </div>
                 </div>
 
-                <div id="cancelViz" class="my-6"></div>
+                <div id="cancelViz" class="my-5"></div>
                 
                 <div>
-                    <div class="text-[11px] font-mono text-slate-400 mb-2">TRẠNG THÁI MẶT NẠ GHẾ SAU KHI HỦY CHẶNG:</div>
+                    <div class="text-xs font-mono text-slate-400 mb-2 font-bold">TRẠNG THÁI GHẾ SAU KHI HỦY:</div>
                     <div id="cancelBitsResult" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Coach Floorplan -->
-    <section id="coach-floorplan" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <!-- SECTION 2: SƠ ĐỒ TOA TÀU & MÔ PHỎNG GIẢI PHÓNG GHẾ -->
+    <section id="coach-floorplan" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div class="reveal">
-            <div class="text-xs font-mono text-cyan-400 uppercase tracking-wider">TRỰC QUAN HÓA TOA TÀU // THỜI GIAN THỰC</div>
-            <h2 class="text-2xl sm:text-3xl font-bold text-slate-100 mt-1">Sơ Đồ Bố Trí Khoang Ghế Toa Tàu</h2>
-            <p class="text-sm text-slate-400 mt-2 max-w-2xl">
-                Bố trí 40 ghế theo 4 hàng A, B (bên trái), lối đi trung tâm và C, D (bên phải). 
-                Khi thay đổi chặng di chuyển cần tìm kiếm, trạng thái từng ghế sẽ tự động cập nhật theo thời gian thực.
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-100">2. Sơ Đồ 40 Ghế Trên Toa Tàu</h2>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl">
+                Chọn chặng bạn muốn đi để xem ghế nào còn trống (xanh lá), ghế nào đã có người (đỏ). Bấm "Bắt đầu chuyến tàu" để xem khách lên xuống và nhả ghế tự động.
             </p>
         </div>
 
-        <div class="mt-8 p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur reveal space-y-6">
+        <div class="mt-5 p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur reveal space-y-5">
             
-            <!-- Thanh dieu khien hanh trinh tau chay -->
+            <!-- Điều khiển hành trình đoàn tàu -->
             <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
                 <div class="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-slate-800 text-xs font-mono">
                     <div class="flex items-center gap-2">
                         <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
-                        <span class="font-bold text-slate-200">MÔ PHỎNG HÀNH TRÌNH TÀU CHẠY THỰC TẾ</span>
+                        <span class="font-bold text-slate-200">MÔ PHỎNG TÀU CHẠY THỰC TẾ & NHẢ GHẾ TỰ ĐỘNG</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <button type="button" 
                                 id="trainJourneyBtn" 
                                 onclick="simulateLiveTrainJourney()"
-                                class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold transition">
+                                class="px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold transition">
                             BẮT ĐẦU CHUYẾN TÀU
                         </button>
                         <button type="button" 
@@ -383,22 +348,22 @@
                     </div>
                 </div>
 
-                <!-- Đường ray tàu chạy -->
+                <!-- Đường ray tàu chạy 5 ga -->
                 <div class="relative my-6 px-4">
                     <div class="h-2 rounded-full bg-slate-800 w-full relative">
                         <div id="animatedTrainIcon" class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 left-0 transition-all duration-700 z-10">
-                            <div class="px-2.5 py-1 rounded bg-cyan-400 text-slate-950 text-[10px] font-mono font-extrabold shadow-[0_0_15px_rgba(56,189,248,0.8)] flex items-center">
+                            <div class="px-2.5 py-1 rounded bg-cyan-400 text-slate-950 text-[10px] font-mono font-extrabold flex items-center">
                                 <span>SE1</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="flex justify-between text-[11px] font-mono text-slate-400 mt-3">
-                        <span class="text-cyan-400 font-bold">GA 0: HÀ NỘI</span>
-                        <span>GA 1: NAM ĐỊNH</span>
-                        <span>GA 2: VINH</span>
-                        <span>GA 3: HUẾ</span>
-                        <span class="text-cyan-400 font-bold">GA 4: ĐÀ NẴNG</span>
+                    <div class="flex justify-between text-xs font-mono text-slate-400 mt-3">
+                        <span class="text-cyan-400 font-bold">Hà Nội</span>
+                        <span>Phủ Lý</span>
+                        <span>Ninh Bình</span>
+                        <span>Thanh Hóa</span>
+                        <span class="text-cyan-400 font-bold">Vinh</span>
                     </div>
                 </div>
 
@@ -407,23 +372,23 @@
                 </div>
             </div>
 
-            <!-- Bo loc chang tuong tac -->
-            <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-wrap items-center justify-between gap-4">
+            <!-- Bộ lọc chặng tương tác -->
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-wrap items-center justify-between gap-4">
                 <div class="flex flex-wrap items-center gap-3">
-                    <span class="text-xs font-mono text-slate-400 uppercase font-bold">KIỂM TRA CHẶNG MUỐN MUA:</span>
+                    <span class="text-xs font-mono text-slate-400 font-bold">CHỌN CHẶNG BẠN MUỐN MUA:</span>
                     <div class="flex items-center gap-2">
                         <select id="coachFilterFrom" onchange="handleFilterJourneyChange()" class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs font-mono text-slate-200">
                             <option value="0" selected>Ga 0 — Hà Nội</option>
-                            <option value="1">Ga 1 — Nam Định</option>
-                            <option value="2">Ga 2 — Vinh</option>
-                            <option value="3">Ga 3 — Huế</option>
+                            <option value="1">Ga 1 — Phủ Lý</option>
+                            <option value="2">Ga 2 — Ninh Bình</option>
+                            <option value="3">Ga 3 — Thanh Hóa</option>
                         </select>
-                        <span class="text-slate-500 font-mono">-&gt;</span>
+                        <span class="text-slate-500 font-mono">&rarr;</span>
                         <select id="coachFilterTo" onchange="handleFilterJourneyChange()" class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs font-mono text-slate-200">
-                            <option value="1">Ga 1 — Nam Định</option>
-                            <option value="2" selected>Ga 2 — Vinh</option>
-                            <option value="3">Ga 3 — Huế</option>
-                            <option value="4">Ga 4 — Đà Nẵng</option>
+                            <option value="1">Ga 1 — Phủ Lý</option>
+                            <option value="2" selected>Ga 2 — Ninh Bình</option>
+                            <option value="3">Ga 3 — Thanh Hóa</option>
+                            <option value="4">Ga 4 — Vinh</option>
                         </select>
                     </div>
                 </div>
@@ -431,119 +396,149 @@
                 <div class="flex items-center gap-4 text-xs font-mono">
                     <div class="flex items-center gap-2">
                         <span class="w-3 h-3 rounded bg-emerald-500/20 border border-emerald-500"></span>
-                        <span class="text-slate-300">ĐẶT ĐƯỢC CHẶNG NÀY:</span>
+                        <span class="text-slate-300">ĐẶT ĐƯỢC:</span>
                         <span id="filterAvailableCount" class="text-emerald-400 font-bold text-sm">--/40</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="w-3 h-3 rounded bg-rose-500/20 border border-rose-500"></span>
-                        <span class="text-slate-300">TRÙNG CHẶNG:</span>
+                        <span class="text-slate-300">ĐÃ CÓ NGƯỜI:</span>
                         <span id="filterConflictCount" class="text-rose-400 font-bold text-sm">--/40</span>
                     </div>
                 </div>
             </div>
 
-            <!-- MẶT CẮT TOA TÀU TOP-DOWN -->
-            <div class="p-4 rounded-xl bg-slate-950 border-2 border-slate-800 overflow-x-auto">
+            <!-- Mặt cắt toa tàu -->
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 overflow-x-auto">
                 <div class="min-w-[760px]" id="modernTrainCoach"></div>
             </div>
 
-            <!-- BẢNG PHÂN TÍCH CHI TIẾT GHẾ KHI CLICK -->
+            <!-- Bảng chi tiết khi click vào 1 ghế -->
             <div id="modernSeatDetailPanel" class="hidden"></div>
         </div>
     </section>
 
-    <!-- Concurrency Test -->
-    <section id="concurrency-test" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <!-- SECTION 3: TEST TRANH CHẤP ĐỒNG THỜI -->
+    <section id="concurrency-test" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div class="reveal">
-            <div class="text-xs font-mono text-cyan-400 uppercase tracking-wider">KIỂM THỬ ĐỒNG THỜI // XỬ LÝ TRANH CHẤP GHẾ</div>
-            <h2 class="text-2xl sm:text-3xl font-bold text-slate-100 mt-1">Kiểm Thử Tranh Chấp Vé Đồng Thời (Stress Test)</h2>
-            <p class="text-sm text-slate-400 mt-2 max-w-2xl">
-                Kiểm tra cơ chế cập nhật nguyên tử <code class="text-cyan-400 font-mono">$bitsAllClear</code> của MongoDB khi có 100 khách hàng 
-                cùng đặt vào 1 vị trí ghế tại cùng thời điểm.
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-100">3. Kiểm Thử Tranh Chấp (100 Người Cùng Mua 1 Ghế)</h2>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl">
+                Mô phỏng trường hợp 100 người cùng lúc bấm mua ghế số 15. Hệ thống dùng toán tử nguyên tử <code class="text-emerald-400 font-mono">$bitsAllClear</code> của database để đảm bảo đúng 1 người mua được, 99 người còn lại bị từ chối, không bao giờ bị bán trùng vé.
             </p>
         </div>
 
-        <div class="mt-8 p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur reveal">
+        <div class="mt-5 p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur reveal">
+            <!-- Điều khiển kịch bản -->
             <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
                 <div>
-                    <div class="text-sm font-bold text-slate-200">Kịch bản thử nghiệm: Ghế 15, Phân đoạn Hà Nội -> Vinh (mask = 3)</div>
-                    <div class="text-xs text-slate-400 mt-0.5">Mục tiêu: Đảm bảo duy nhất 1 giao dịch thành công, 99 giao dịch bị từ chối nguyên tử trong dưới 3ms.</div>
+                    <div class="text-sm font-bold text-slate-200">Mục tiêu test: Ghế 15, Chặng Hà Nội &rarr; Ninh Bình</div>
+                    <div class="text-xs text-slate-400 mt-0.5">Kết quả cần đạt: Duy nhất 1 người thành công, 99 người bị từ chối an toàn.</div>
                 </div>
 
-                <button type="button" 
-                        id="startStressTestBtn" 
-                        onclick="runConcurrencyStressTest(100)"
-                        class="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs font-bold transition shadow-[0_0_15px_rgba(99,102,241,0.4)]">
-                    GỬI 100 YÊU CẦU ĐỒNG THỜI
-                </button>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" 
+                            id="stepStressTestBtn" 
+                            onclick="runStepByStepConcurrencyDemo()"
+                            class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-slate-700 font-mono text-xs font-bold transition">
+                        <span>&#9654;</span> Xem mô phỏng chậm (5 người)
+                    </button>
+                    <button type="button" 
+                            id="startStressTestBtn" 
+                            onclick="runConcurrencyStressTest(100)"
+                            class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs font-bold transition">
+                        ⚡ Gửi 100 request cùng lúc
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sơ đồ trực quan đơn giản -->
+            <div id="busVisualDiagram" class="my-4 p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
+                    <div class="p-3 rounded bg-slate-900 border border-slate-800">
+                        <span class="text-slate-500 text-[11px] font-bold">1. DANH SÁCH YÊU CẦU:</span>
+                        <div class="text-slate-200 font-bold mt-1">100 Khách hàng đồng thời</div>
+                    </div>
+
+                    <div class="p-3 rounded bg-slate-900 border border-slate-800 text-center">
+                        <span class="text-slate-500 text-[11px] font-bold">2. KIỂM TRA TỨC THÌ:</span>
+                        <div id="busArbiterStatus" class="mt-1">
+                            <span class="px-2.5 py-1 rounded bg-slate-900 text-slate-400 border border-slate-800 font-bold">Chờ lệnh...</span>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded bg-slate-900 border border-slate-800">
+                        <span class="text-slate-500 text-[11px] font-bold">3. TRẠNG THÁI GHẾ 15:</span>
+                        <div class="flex items-center justify-between mt-1">
+                            <span class="text-slate-300">Ghế 15:</span>
+                            <span id="targetRamDisplay" class="text-slate-400 font-bold">0b0000 (Trống)</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Thanh tiến trình -->
-            <div class="my-5">
+            <div class="my-3">
                 <div class="w-full h-2 rounded-full bg-slate-950 border border-slate-800 overflow-hidden">
-                    <div id="stressProgressBar" class="h-full bg-gradient-to-r from-cyan-500 to-indigo-500 w-0 transition-all duration-100"></div>
+                    <div id="stressProgressBar" class="h-full bg-cyan-500 w-0 transition-all duration-100"></div>
                 </div>
             </div>
 
             <!-- Chỉ số đo lường -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-5 font-mono text-xs">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-4 font-mono text-xs">
                 <div class="p-3 rounded-lg bg-slate-950 border border-slate-800">
-                    <span class="text-slate-500">ĐẶT VÉ THÀNH CÔNG (201):</span>
+                    <span class="text-slate-500">MUA THÀNH CÔNG (201):</span>
                     <div id="stressSuccessCount" class="text-emerald-400 font-bold text-xl mt-1">0</div>
                 </div>
                 <div class="p-3 rounded-lg bg-slate-950 border border-slate-800">
-                    <span class="text-slate-500">TRÙNG CHẶNG BỊ CHẶN (409):</span>
+                    <span class="text-slate-500">TỪ CHỐI DO TRÙNG (409):</span>
                     <div id="stressConflictCount" class="text-rose-400 font-bold text-xl mt-1">0</div>
                 </div>
                 <div class="p-3 rounded-lg bg-slate-950 border border-slate-800">
-                    <span class="text-slate-500">ĐỘ TRỄ TRUNG BÌNH:</span>
+                    <span class="text-slate-500">THỜI GIAN TRUNG BÌNH:</span>
                     <div id="stressAvgLatency" class="text-cyan-400 font-bold text-xl mt-1">-- ms</div>
                 </div>
                 <div class="p-3 rounded-lg bg-slate-950 border border-slate-800">
-                    <span class="text-slate-500">CƠ CHẾ ĐẢM BẢO:</span>
+                    <span class="text-slate-500">CƠ CHẾ CHỐNG TRÙNG:</span>
                     <div id="stressLockStatus" class="text-slate-300 font-bold text-xs mt-2 uppercase">ATOMIC $bitsAllClear</div>
                 </div>
             </div>
 
             <!-- Terminal log -->
             <div class="terminal-container rounded-lg bg-slate-950 border border-slate-800 p-4">
-                <div class="text-[10px] font-mono text-slate-500 pb-2 mb-2 border-b border-slate-800/80 flex items-center justify-between">
-                    <span>NHẬT KÝ KIỂM THỬ ĐỒNG THỜI</span>
-                    <span>BUFFER: REAL-TIME</span>
+                <div class="text-[10px] font-mono text-slate-500 pb-2 mb-2 border-b border-slate-800 flex items-center justify-between">
+                    <span>NHẬT KÝ CHI TIẾT TỪNG REQUEST</span>
+                    <span>REAL-TIME</span>
                 </div>
-                <div id="concurrencyLogTerminal" class="h-44 overflow-y-auto space-y-1 pr-2">
-                    <div class="text-[11px] font-mono text-slate-400 font-medium">// Nhấn "Gửi 100 Yêu Cầu Đồng Thời" để bắt đầu kiểm thử tranh chấp vé...</div>
+                <div id="concurrencyLogTerminal" class="h-40 overflow-y-auto space-y-1 pr-2">
+                    <div class="text-xs font-mono text-slate-400">// Bấm nút bên trên để bắt đầu test tranh chấp vé...</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Security Hardening -->
-    <section id="security-hardening" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <!-- SECTION 4: BẢO MẬT & CHỐNG SPAM -->
+    <section id="security-hardening" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div class="reveal">
-            <div class="text-xs font-mono text-cyan-400 uppercase tracking-wider">BẢO MẬT HỆ THỐNG // TIÊU CHUẨN OWASP</div>
-            <h2 class="text-2xl sm:text-3xl font-bold text-slate-100 mt-1">Tiêu Chuẩn Bảo Mật OWASP & Phòng Thủ Đa Lớp</h2>
-            <p class="text-sm text-slate-400 mt-2 max-w-2xl">
-                Triển khai các cơ chế bảo mật theo tiêu chuẩn OWASP: bảo vệ HTTP headers với Helmet, giới hạn tần suất yêu cầu chống brute-force/DDoS, mã hóa mật khẩu an toàn với Bcrypt, quản lý phiên làm việc bằng Token kép (Access/Refresh Token) và kiểm tra mã nguồn tĩnh.
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-100">4. Kiểm Tra An Toàn Hệ Thống</h2>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl">
+                Thử nghiệm cơ chế chống spam (Rate Limit) và quản lý phiên đăng nhập (JWT Token).
             </p>
         </div>
 
-        <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6 reveal">
-            <!-- Phân hệ 1: Thử nghiệm Rate Limiting -->
-            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur flex flex-col justify-between">
+        <div class="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-5 reveal">
+            <!-- Rate Limiting -->
+            <div class="p-5 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between text-xs font-mono pb-2 border-b border-slate-800">
-                        <span class="text-cyan-400 font-bold">01. GIỚI HẠN TẦN SUẤT YÊU CẦU (RATE LIMITING)</span>
+                        <span class="text-cyan-400 font-bold">CHỐNG SPAM (RATE LIMIT)</span>
                         <span class="text-slate-500">EXPRESS-RATE-LIMIT</span>
                     </div>
-                    <p class="text-xs text-slate-400 mt-3 leading-relaxed">
-                        Giới hạn số lượng yêu cầu theo từng địa chỉ IP. 
-                        Ngăn chặn bot spam đặt vé tự động và giảm thiểu nguy cơ tấn công từ chối dịch vụ (DDoS).
+                    <p class="text-xs text-slate-400 mt-2.5 leading-relaxed">
+                        Chặn người dùng hoặc bot gửi request đặt vé quá nhanh liên tục trong thời gian ngắn.
                     </p>
 
-                    <div class="my-4">
+                    <div class="my-3.5">
                         <div class="flex justify-between text-xs font-mono mb-1">
-                            <span class="text-slate-400">Số request đã gửi:</span>
+                            <span class="text-slate-400">Số lần bấm liên tục:</span>
                             <span id="rateLimitSpamCount" class="text-cyan-400 font-bold">0</span>
                         </div>
                         <div class="w-full h-2 rounded bg-slate-950 border border-slate-800 overflow-hidden">
@@ -551,9 +546,9 @@
                         </div>
                     </div>
 
-                    <div id="rateLimitSpamStatus" class="my-3">
-                        <div class="p-3 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 font-mono text-xs">
-                            Sẵn sàng thử nghiệm. Nhấn nút bên dưới để gửi liên tục các request mô phỏng.
+                    <div id="rateLimitSpamStatus" class="my-2.5">
+                        <div class="p-2.5 rounded bg-slate-950 border border-slate-800 text-slate-400 font-mono text-xs">
+                            Bấm nút bên dưới thật nhanh để xem khi nào hệ thống chặn lại (HTTP 429).
                         </div>
                     </div>
                 </div>
@@ -561,35 +556,34 @@
                 <button type="button" 
                         onclick="simulateRateLimitSpam()"
                         class="w-full py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 font-mono text-xs font-bold transition border border-slate-700">
-                    GỬI YÊU CẦU LIÊN TỤC ĐỂ THỬ NGHIỆM
+                    Bấm liên tục để test chặn spam
                 </button>
             </div>
 
-            <!-- Phân hệ 2: JWT Dual Token Rotation -->
-            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur flex flex-col justify-between">
+            <!-- JWT Rotation -->
+            <div class="p-5 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between text-xs font-mono pb-2 border-b border-slate-800">
-                        <span class="text-cyan-400 font-bold">02. QUẢN LÝ PHIÊN BẰNG TOKEN KÉP (JWT ROTATION)</span>
+                        <span class="text-cyan-400 font-bold">TỰ ĐỘNG LÀM MỚI PHIÊN (JWT REFRESH)</span>
                         <span class="text-slate-500">JSONWEBTOKEN</span>
                     </div>
-                    <p class="text-xs text-slate-400 mt-3 leading-relaxed">
-                        Sử dụng Access Token có thời hạn ngắn (15 phút) để xác thực các yêu cầu API, 
-                        kết hợp cùng Refresh Token lưu trữ trong cơ sở dữ liệu để tự động làm mới phiên đăng nhập mà không làm gián đoạn người dùng.
+                    <p class="text-xs text-slate-400 mt-2.5 leading-relaxed">
+                        AccessToken hết hạn sau 15 phút, hệ thống tự dùng RefreshToken để cấp mới mà không bắt khách đăng nhập lại.
                     </p>
 
-                    <div class="my-4 space-y-2 font-mono text-xs">
-                        <div class="p-2.5 rounded bg-slate-950 border border-slate-800 flex items-center justify-between">
-                            <span class="text-slate-400">ACCESS TOKEN:</span>
+                    <div class="my-3.5 space-y-2 font-mono text-xs">
+                        <div class="p-2 rounded bg-slate-950 border border-slate-800 flex items-center justify-between">
+                            <span class="text-slate-400">AccessToken:</span>
                             <span id="jwtAccessTokenStatus" class="text-emerald-400 font-bold">ACTIVE (15 phút)</span>
                         </div>
-                        <div class="p-2.5 rounded bg-slate-950 border border-slate-800 flex items-center justify-between">
-                            <span class="text-slate-400">REFRESH TOKEN:</span>
-                            <span id="jwtRefreshTokenStatus" class="text-cyan-400 font-bold">STORED IN DB (7 ngày)</span>
+                        <div class="p-2 rounded bg-slate-950 border border-slate-800 flex items-center justify-between">
+                            <span class="text-slate-400">RefreshToken:</span>
+                            <span id="jwtRefreshTokenStatus" class="text-cyan-400 font-bold">LƯU TRONG DB (7 ngày)</span>
                         </div>
                     </div>
 
-                    <div id="jwtRotationStatus" class="text-xs font-mono text-slate-400 p-3 rounded bg-slate-950 border border-slate-800 my-3">
-                        // Nhấn nút bên dưới để mô phỏng AccessToken hết hạn và cơ chế Token Rotation tự động.
+                    <div id="jwtRotationStatus" class="text-xs font-mono text-slate-400 p-2.5 rounded bg-slate-950 border border-slate-800 my-2.5">
+                        // Bấm nút bên dưới để xem quá trình tự động làm mới token.
                     </div>
                 </div>
 
@@ -597,231 +591,29 @@
                         id="jwtRotationBtn" 
                         onclick="simulateTokenRotation()"
                         class="w-full py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 font-mono text-xs font-bold transition border border-slate-700">
-                    MÔ PHỎNG LÀM MỚI TOKEN (REFRESH TOKEN)
+                    Mô phỏng làm mới Token
                 </button>
-            </div>
-        </div>
-
-        <!-- Bảng kiểm soát an ninh tĩnh SAST OWASP Top 10 -->
-        <div class="mt-8 p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur reveal">
-            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-800 text-xs font-mono">
-                <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span class="text-slate-200 font-bold">BÁO CÁO KIỂM SOÁT AN NINH THEO TIÊU CHUẨN OWASP TOP 10</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-slate-500 hidden sm:inline sast-ruleset-text">RULESET: p/owasp-top-ten</span>
-                    <span id="sastStatusBadge" class="sast-status-badge text-emerald-400 font-bold bg-emerald-950/60 border border-emerald-700/60 px-2.5 py-0.5 rounded">STATUS: 10/10 PASS // 0 VULNERABILITIES</span>
-                </div>
-            </div>
-
-            <!-- Terminal output badge -->
-            <div id="sastCmdBar" class="sast-cmd-bar mb-4 p-2.5 rounded-lg bg-slate-950 border border-slate-800/80 font-mono text-[11px] text-slate-400 flex flex-wrap items-center justify-between gap-2">
-                <div class="flex items-center gap-2">
-                    <span class="text-cyan-400 font-bold">$</span>
-                    <code>semgrep scan --config p/owasp-top-ten src/</code>
-                </div>
-                <span class="sast-findings-badge text-emerald-400 font-bold text-[10px] shrink-0">47 FILES // 72 JS RULES // 0 FINDINGS</span>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3.5 text-xs">
-                <!-- A01 -->
-                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
-                            <span class="text-emerald-400 font-bold">[PASS] A01: Broken Access Control</span>
-                            <span class="text-[10px] text-slate-500">IDOR & AUTHZ</span>
-                        </div>
-                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
-                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Người dùng truy cập, xem hoặc sửa/xóa trái phép dữ liệu của người khác (IDOR, leo thang đặc quyền ngang/dọc).
-                        </div>
-                    </div>
-                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
-                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Mọi endpoint thao tác vé đều đối soát quyền sở hữu <code class="text-cyan-300">req.auth.userId === allocation.userId</code>.
-                    </div>
-                </div>
-
-                <!-- A02 -->
-                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
-                            <span class="text-emerald-400 font-bold">[PASS] A02: Cryptographic Failures</span>
-                            <span class="text-[10px] text-slate-500">CRYPTO & LEAK</span>
-                        </div>
-                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
-                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Dùng thuật toán băm yếu (MD5/SHA1), lưu mật khẩu dạng thô, hoặc hardcode Secret Key vào mã nguồn gây lộ lọt.
-                        </div>
-                    </div>
-                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
-                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Mật khẩu băm Bcrypt 12 Salt Rounds (~400ms/hash chống GPU crack); Secret tách biệt qua biến môi trường <code class="text-cyan-300">.env</code>.
-                    </div>
-                </div>
-
-                <!-- A03 -->
-                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
-                            <span class="text-emerald-400 font-bold">[PASS] A03: Injection Attacks</span>
-                            <span class="text-[10px] text-slate-500">NOSQL & QUERY</span>
-                        </div>
-                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
-                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Chèn toán tử truy vấn độc hại (<code class="text-amber-200">$ne</code>, <code class="text-amber-200">$gt</code>, script) vào JSON request nhằm vượt qua xác thực hoặc trích xuất dữ liệu DB.
-                        </div>
-                    </div>
-                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
-                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Zod Schema ép kiểu nghiêm ngặt và lọc sạch input trước khi vào Controller; Mongoose ODM tham số hóa toàn bộ query.
-                    </div>
-                </div>
-
-                <!-- A04 -->
-                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
-                            <span class="text-emerald-400 font-bold">[PASS] A04: Insecure Design</span>
-                            <span class="text-[10px] text-slate-500">RACE & REPLAY</span>
-                        </div>
-                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
-                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Khiếm khuyết kiến trúc: người dùng spam click gây trừ tiền/đặt vé 2 lần, hoặc 2 người cùng tranh chấp mua 1 ghế cùng thời điểm.
-                        </div>
-                    </div>
-                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
-                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Header <code class="text-cyan-300">Idempotency-Key</code> + SHA-256 chống lặp vé; giải thuật Bitmask nguyên tử <code class="text-cyan-300">$bitsAllClear</code> triệt tiêu Race Condition.
-                    </div>
-                </div>
-
-                <!-- A05 -->
-                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
-                            <span class="text-emerald-400 font-bold">[PASS] A05: Security Misconfiguration</span>
-                            <span class="text-[10px] text-slate-500">HEADERS & CORS</span>
-                        </div>
-                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
-                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Lộ thông tin framework (<code class="text-amber-200">X-Powered-By: Express</code>), thiếu HTTP Security Headers (dễ bị Clickjacking), hoặc mở CORS tự do cho mọi domain.
-                        </div>
-                    </div>
-                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
-                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Middleware Helmet tự động thiết lập HSTS, X-Frame-Options, ẩn header nhạy cảm; CORS cấu hình whitelist chặt chẽ.
-                    </div>
-                </div>
-
-                <!-- A06 -->
-                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
-                            <span class="text-emerald-400 font-bold">[PASS] A06: Vulnerable Components</span>
-                            <span class="text-[10px] text-slate-500">SCA & NPM CVE</span>
-                        </div>
-                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
-                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Sử dụng các gói thư viện bên thứ 3 (NPM packages) đã lỗi thời, chứa mã độc hoặc có lỗ hổng CVE công khai chưa vá.
-                        </div>
-                    </div>
-                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
-                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Rà soát tự động qua công cụ SCA <code class="text-cyan-300">npm audit --omit=dev</code>; 100% các dependency trong runtime đạt chuẩn an toàn 0 CVE.
-                    </div>
-                </div>
-
-                <!-- A07 -->
-                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
-                            <span class="text-emerald-400 font-bold">[PASS] A07: Identification & Auth Failures</span>
-                            <span class="text-[10px] text-slate-500">BRUTE FORCE & JWT</span>
-                        </div>
-                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
-                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Cho phép hacker gửi hàng triệu request dò mật khẩu (Brute Force/Credential Stuffing) hoặc token không thể vô hiệu hóa khi bị lộ.
-                        </div>
-                    </div>
-                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
-                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Rate Limit 20 req/phút chặn đứng brute-force; cơ chế Dual Token (Access Token 15 phút, Refresh Token xóa khỏi DB khi logout).
-                    </div>
-                </div>
-
-                <!-- A08 -->
-                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
-                            <span class="text-emerald-400 font-bold">[PASS] A08: Software & Data Integrity</span>
-                            <span class="text-[10px] text-slate-500">DESERIALIZE & TAMPER</span>
-                        </div>
-                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
-                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Deserialize dữ liệu không an toàn (RCE qua object injection), sửa đổi payload giao dịch trên đường truyền, hoặc dùng hàm <code class="text-amber-200">eval()</code>.
-                        </div>
-                    </div>
-                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
-                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Mã nguồn nói KHÔNG với <code class="text-cyan-300">eval()</code>; kiểm soát toàn vẹn JSON bằng Zod và chữ ký số SHA-256 cho mỗi giao dịch.
-                    </div>
-                </div>
-
-                <!-- A09 -->
-                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
-                            <span class="text-emerald-400 font-bold">[PASS] A09: Security Logging & Monitoring</span>
-                            <span class="text-[10px] text-slate-500">LOGGING & PROBES</span>
-                        </div>
-                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
-                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Không phát hiện được xâm nhập do thiếu log, hoặc ghi đè mật khẩu vào log; để lộ chi tiết lỗi kỹ thuật và cấu trúc server cho client.
-                        </div>
-                    </div>
-                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
-                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Middleware xử lý lỗi tập trung chuẩn hóa ErrorResponse (giấu hoàn toàn stack trace); 2 probes thời gian thực <code class="text-cyan-300">/health/live</code> và <code class="text-cyan-300">/health/ready</code>.
-                    </div>
-                </div>
-
-                <!-- A10 -->
-                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
-                            <span class="text-emerald-400 font-bold">[PASS] A10: Server-Side Request Forgery</span>
-                            <span class="text-[10px] text-slate-500">SSRF & WEBHOOK</span>
-                        </div>
-                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
-                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Server nhận URL từ phía người dùng rồi tự động gửi request đến URL đó, khiến mạng nội bộ hoặc cloud metadata bị lộ.
-                        </div>
-                    </div>
-                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
-                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Hệ thống backend được đóng gói thuần túy, không cung cấp bất kỳ API nào nhận URL ngoài từ client; miễn nhiễm 100% với SSRF.
-                    </div>
-                </div>
-
-                <!-- Extra: Thundering Herd -->
-                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between md:col-span-2 lg:col-span-2 xl:col-span-2">
-                    <div>
-                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80 font-mono">
-                            <span class="text-emerald-400 font-bold">[PASS] Extra: Thundering Herd / Cache Stampede</span>
-                            <span class="text-[10px] text-slate-500">CONCURRENCY & DB CRASH</span>
-                        </div>
-                        <div class="text-[11px] text-amber-300/90 font-sans mt-2">
-                            <span class="font-bold font-mono text-amber-400">Kiểu lỗ hổng:</span> Hàng ngàn request ập vào cùng lúc đúng thời điểm Cache rớt/hết hạn khiến toàn bộ query dồn vào DB, gây sập database tức thì.
-                        </div>
-                    </div>
-                    <div class="text-[11px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-800/50">
-                        <span class="font-bold font-mono text-cyan-400">Phòng vệ:</span> Áp dụng kỹ thuật Request Coalescing qua <code class="text-cyan-300">inFlightLoads</code> Promise Map: chỉ 1 request tải từ DB, các request đồng thời khác chia sẻ chung kết quả.
-                    </div>
-                </div>
             </div>
         </div>
     </section>
 
-    <!-- Hexagonal Architecture -->
+    <!-- SECTION 5: KIẾN TRÚC PHÂN TẦNG VÀ LUỒNG PIPELINE -->
     <section id="architecture" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div class="reveal flex flex-wrap items-end justify-between gap-4 mb-4">
             <div>
-                <div class="text-[11px] font-mono text-cyan-400 uppercase tracking-wider">KIẾN TRÚC HỆ THỐNG // MÔ HÌNH HEXAGONAL</div>
-                <h2 class="text-xl sm:text-2xl font-bold text-slate-100 mt-0.5">Mô Hình Phân Tầng Kiến Trúc Hexagonal (Ports & Adapters)</h2>
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-100">5. Luồng Xử Lý Khi Khách Bấm Đặt Vé</h2>
+                <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
+                    Bấm "Chạy tự động" để xem một lượt đặt vé đi qua các lớp xử lý từ giao diện vào đến cơ sở dữ liệu.
+                </p>
             </div>
-            <p class="text-xs text-slate-400 max-w-xl text-right hidden sm:block">
-                Nhấp vào từng nhánh cây để xem vai trò và nguyên tắc cô lập (DIP), hoặc bấm chạy mô phỏng luồng request.
-            </p>
         </div>
 
-        <!-- KHUNG TỔNG HỢP KIẾN TRÚC GỌN GÀNG VỪA KHUNG HÌNH (COMPACT VIEWPORT) -->
+        <!-- Khung tổng hợp kiến trúc -->
         <div class="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur reveal overflow-hidden">
             
-            <!-- THANH ĐIỀU KHIỂN MÔ PHỎNG (COMPACT CONTROL BAR) -->
+            <!-- Thanh điều khiển mô phỏng pipeline -->
             <div class="p-3 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
-                <div class="flex items-center gap-2.5">
+                <div class="flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
                     <span id="pipelineTraceStepCount" class="font-bold text-slate-200">BƯỚC 1/6: CLIENT GỬI HTTP REQUEST</span>
                 </div>
@@ -851,19 +643,18 @@
                 </div>
             </div>
 
-            <!-- THANH TIẾN TRÌNH LUỒNG -->
+            <!-- Thanh tiến trình luồng -->
             <div class="w-full h-1 bg-slate-950">
                 <div id="pipelineTraceProgressBar" class="h-full bg-cyan-400 w-1/6 transition-all duration-300"></div>
             </div>
 
-            <!-- BỐ CỤC 2 CỘT GỌN GÀNG -->
+            <!-- Bố cục 2 cột -->
             <div class="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-800">
                 
-                <!-- CỘT TRÁI: SƠ ĐỒ CÂY 5 TẦNG (COMPACT TREE) -->
+                <!-- Cột trái: Sơ đồ cây 5 tầng -->
                 <div class="lg:col-span-4 p-4 space-y-1.5 font-mono">
-                    <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-2 flex items-center justify-between">
-                        <span>SƠ ĐỒ CÂY PHÂN CẤP</span>
-                        <span class="text-cyan-400">PORTS & ADAPTERS</span>
+                    <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-2">
+                        CÁC TẦNG XỬ LÝ (HEXAGONAL ARCHITECTURE)
                     </div>
 
                     <!-- Node 1: Client -->
@@ -871,14 +662,12 @@
                         <div class="flex items-center gap-2">
                             <span id="treeNodeBadge_1" class="w-5 h-5 rounded bg-slate-800 text-[10px] font-bold flex items-center justify-center text-slate-400">01</span>
                             <div>
-                                <div class="text-xs font-bold text-slate-200">Client Interface</div>
-                                <div class="text-[10px] text-slate-500">Browser / Swagger / Mobile</div>
+                                <div class="text-xs font-bold text-slate-200">Giao diện (Client)</div>
+                                <div class="text-[10px] text-slate-500">Trình duyệt / Ứng dụng di động</div>
                             </div>
                         </div>
-                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 border border-slate-800">EXTERNAL</span>
                     </div>
 
-                    <!-- Connector -->
                     <div class="w-0.5 h-1.5 bg-slate-800 ml-4"></div>
 
                     <!-- Node 2: Presentation -->
@@ -886,14 +675,12 @@
                         <div class="flex items-center gap-2">
                             <span id="treeNodeBadge_2" class="w-5 h-5 rounded bg-slate-800 text-[10px] font-bold flex items-center justify-center text-slate-400">02</span>
                             <div>
-                                <div class="text-xs font-bold text-slate-200">Presentation Layer</div>
-                                <div class="text-[10px] text-slate-500">Router / Zod / JWT</div>
+                                <div class="text-xs font-bold text-slate-200">Bộ điều khiển (Controller)</div>
+                                <div class="text-[10px] text-slate-500">Kiểm tra hợp lệ Zod &amp; Auth</div>
                             </div>
                         </div>
-                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 border border-slate-800">INBOUND</span>
                     </div>
 
-                    <!-- Connector -->
                     <div class="w-0.5 h-1.5 bg-slate-800 ml-4"></div>
 
                     <!-- Node 3: Application -->
@@ -901,29 +688,25 @@
                         <div class="flex items-center gap-2">
                             <span id="treeNodeBadge_3" class="w-5 h-5 rounded bg-slate-800 text-[10px] font-bold flex items-center justify-center text-slate-400">03</span>
                             <div>
-                                <div class="text-xs font-bold text-slate-200">Application Layer</div>
-                                <div class="text-[10px] text-slate-500">Use Cases / Idempotency SHA-256</div>
+                                <div class="text-xs font-bold text-slate-200">Nghiệp vụ (Use Case)</div>
+                                <div class="text-[10px] text-slate-500">Điều phối đặt vé &amp; Chống gửi lặp</div>
                             </div>
                         </div>
-                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 border border-slate-800">USE CASE</span>
                     </div>
 
-                    <!-- Connector -->
                     <div class="w-0.5 h-1.5 bg-slate-800 ml-4"></div>
 
                     <!-- Node 4: Domain Core -->
-                    <div id="treeNode_4" onclick="selectLayer(4)" class="tree-node p-2 rounded-lg border border-cyan-400 bg-cyan-950/40 shadow-[0_0_15px_rgba(56,189,248,0.2)] flex items-center justify-between cursor-pointer transition text-left">
+                    <div id="treeNode_4" onclick="selectLayer(4)" class="tree-node p-2 rounded-lg border border-cyan-400 bg-cyan-950/40 shadow-sm flex items-center justify-between cursor-pointer transition text-left">
                         <div class="flex items-center gap-2">
                             <span id="treeNodeBadge_4" class="w-5 h-5 rounded bg-cyan-500 text-slate-950 text-[10px] font-bold flex items-center justify-center">04</span>
                             <div>
-                                <div class="text-xs font-bold text-slate-100">Domain Core</div>
-                                <div class="text-[10px] text-cyan-300">Logic Bitmask // Độc lập công nghệ</div>
+                                <div class="text-xs font-bold text-slate-100">Cốt lõi (Domain Core)</div>
+                                <div class="text-[10px] text-cyan-300">Thuật toán Bitmask thuần túy</div>
                             </div>
                         </div>
-                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800">HEART</span>
                     </div>
 
-                    <!-- Connector -->
                     <div class="w-0.5 h-1.5 bg-slate-800 ml-4"></div>
 
                     <!-- Node 5: Infrastructure -->
@@ -931,38 +714,32 @@
                         <div class="flex items-center gap-2">
                             <span id="treeNodeBadge_5" class="w-5 h-5 rounded bg-slate-800 text-[10px] font-bold flex items-center justify-center text-slate-400">05</span>
                             <div>
-                                <div class="text-xs font-bold text-slate-200">Infrastructure Layer</div>
-                                <div class="text-[10px] text-slate-500">MongoDB $bitsAllClear / Redis</div>
+                                <div class="text-xs font-bold text-slate-200">Cơ sở dữ liệu (Database)</div>
+                                <div class="text-[10px] text-slate-500">MongoDB $bitsAllClear &amp; Redis</div>
                             </div>
                         </div>
-                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 border border-slate-800">OUTBOUND</span>
                     </div>
 
-                    <!-- Luồng tóm tắt một dòng -->
                     <div class="mt-3 p-2 rounded bg-slate-950 border border-slate-800/80 text-[10px] text-slate-400 leading-tight">
-                        <span class="text-cyan-400 font-bold">LUỒNG XỬ LÝ:</span> Client -&gt; Presentation -&gt; Application (Use Case) -&gt; Domain (Bitmask) -&gt; Database (Atomic)
+                        <span class="text-cyan-400 font-bold">LUỒNG:</span> Khách đặt vé &rarr; Controller &rarr; Use Case &rarr; Thuật toán Bitmask &rarr; Lưu Database
                     </div>
                 </div>
 
-                <!-- CỘT PHẢI: KHUNG CHI TIẾT TẦNG & TABBED VIEW (GỌN GÀNG KHÔNG TRÀN) -->
+                <!-- Cột phải: Inspector tầng -->
                 <div class="lg:col-span-8 p-4 flex flex-col justify-between">
-                    
-                    <!-- Header của Inspector: Tiêu đề tầng + Các Tab chuyển đổi -->
                     <div class="pb-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
                         <div>
                             <div class="flex items-center gap-2">
-                                <h3 id="activeLayerTitle" class="text-sm font-bold text-slate-100 font-mono">TẦNG 04: DOMAIN LAYER (NGHIỆP VỤ CỐT LÕI // CORE)</h3>
-                                <span id="activeLayerTag" class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800 font-mono">TẦNG LOGIC CỐT LÕI (CORE DOMAIN)</span>
+                                <h3 id="activeLayerTitle" class="text-sm font-bold text-slate-100 font-mono">TẦNG 04: DOMAIN LAYER (NGHIỆP VỤ CỐT LÕI)</h3>
                             </div>
                         </div>
 
-                        <!-- 3 Mini Tabs -->
                         <div class="flex items-center gap-1.5">
                             <button type="button" 
                                     id="tabBtnOverview" 
                                     onclick="switchInspectorTab('overview')" 
                                     class="px-2.5 py-1 rounded text-[11px] font-mono font-bold border transition bg-cyan-500/20 text-cyan-300 border-cyan-500">
-                                VAI TRÒ & NGUYÊN TẮC
+                                VAI TRÒ
                             </button>
                             <button type="button" 
                                     id="tabBtnCode" 
@@ -974,39 +751,39 @@
                                     id="tabBtnPacket" 
                                     onclick="switchInspectorTab('packet')" 
                                     class="px-2.5 py-1 rounded text-[11px] font-mono font-bold border transition bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200">
-                                GÓI TIN BƯỚC
+                                DỮ LIỆU GỬI
                             </button>
                         </div>
                     </div>
 
-                    <!-- TAB 1: TỔNG QUAN, VAI TRÒ & NGUYÊN TẮC -->
+                    <!-- TAB 1: Tổng quan -->
                     <div id="inspectorViewOverview" class="mt-3 space-y-2 text-xs">
                         <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
-                            <div class="text-[10px] font-mono text-cyan-400 font-bold uppercase">VAI TRÒ TRÁCH NHIỆM CHÍNH:</div>
-                            <p id="activeLayerRole" class="text-slate-300 text-[11px] leading-relaxed mt-1">
-                                Trung tâm xử lý logic nghiệp vụ cốt lõi. Chuyển đổi bài toán phân bổ ghế liên trạm thành các phép toán thao tác bit nhị phân. Tầng này được thiết kế thuần khiết (Pure Functions, không phụ thuộc thư viện ngoài), cho phép kiểm tra trùng chặng tức thì.
+                            <div class="text-[10px] font-mono text-cyan-400 font-bold uppercase">VAI TRÒ CHÍNH:</div>
+                            <p id="activeLayerRole" class="text-slate-300 text-xs leading-relaxed mt-1">
+                                Xử lý thuật toán Bitmask cốt lõi. Chuyển đổi các chặng tàu thành số nhị phân và kiểm tra ghế trùng bằng các phép toán bit tức thì.
                             </p>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                             <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
-                                <div class="text-[10px] font-mono text-slate-500 font-bold uppercase">CÔ LẬP // PHỤ THUỘC (DIP):</div>
+                                <div class="text-[10px] font-mono text-slate-500 font-bold uppercase">NGUYÊN TẮC:</div>
                                 <p id="activeLayerDepRule" class="text-slate-300 mt-1 leading-snug">
-                                    Độc lập tuyệt đối! Không phụ thuộc vào bất kỳ tầng nào khác (Zero Outward Dependencies).
+                                    Độc lập hoàn toàn, không phụ thuộc vào thư viện ngoài hay cơ sở dữ liệu.
                                 </p>
                             </div>
 
                             <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
-                                <div class="text-[10px] font-mono text-slate-500 font-bold uppercase">QUY TẮC BẤT BIẾN (INVARIANTS):</div>
+                                <div class="text-[10px] font-mono text-slate-500 font-bold uppercase">PHẠM VI:</div>
                                 <p id="activeLayerInvariants" class="text-slate-300 mt-1 leading-snug">
-                                    4 phân đoạn hành trình nằm gọn trong 4 bit (0–15). Không tồn tại bitmask âm hoặc &gt; 15.
+                                    4 chặng tàu nằm gọn trong 4 bit (giá trị từ 0 đến 15).
                                 </p>
                             </div>
                         </div>
 
                         <div class="p-2 rounded-lg bg-slate-950 border border-slate-800 font-mono text-[10px]" id="activeLayerInOut">
-                            <div><span class="text-slate-500 font-semibold uppercase">INPUT:</span> <span class="text-slate-300">fromIndex (0..3), toIndex (1..4), occupiedMask (0..15).</span></div>
-                            <div class="mt-0.5"><span class="text-slate-500 font-semibold uppercase">OUTPUT:</span> <span class="text-emerald-400">segmentMask (0..15), clearMask (0..15), hasConflict (boolean).</span></div>
+                            <div><span class="text-slate-500 font-semibold uppercase">ĐẦU VÀO:</span> <span class="text-slate-300">Ga đi (0..3), Ga đến (1..4), Ghế hiện tại (0..15).</span></div>
+                            <div class="mt-0.5"><span class="text-slate-500 font-semibold uppercase">ĐẦU RA:</span> <span class="text-emerald-400">Mặt nạ chặng (0..15), Trùng hay không (true/false).</span></div>
                         </div>
 
                         <div class="flex items-center gap-2 text-[10px] font-mono">
@@ -1017,7 +794,7 @@
                         </div>
                     </div>
 
-                    <!-- TAB 2: MÃ NGUỒN HIỆN THỰC -->
+                    <!-- TAB 2: Mã nguồn -->
                     <div id="inspectorViewCode" class="mt-3 hidden">
                         <div class="flex items-center justify-between pb-1.5 text-[10px] font-mono text-slate-500">
                             <span id="activeLayerCodeTitle" class="text-cyan-400 font-bold">src/modules/bookings/domain/segment-mask.js</span>
@@ -1042,14 +819,14 @@ const buildClearMask = (segmentMask) => {
 module.exports = { buildSegmentMask, hasConflict, buildClearMask };</code></pre>
                     </div>
 
-                    <!-- TAB 3: GÓI TIN DỮ LIỆU ĐANG MÔ PHỎNG -->
+                    <!-- TAB 3: Gói tin -->
                     <div id="inspectorViewPacket" class="mt-3 hidden space-y-2">
                         <div class="p-2 rounded bg-slate-950 border border-slate-800 text-[11px] font-mono text-slate-300 leading-snug" id="pipelineTraceStatusMsg">
-                            Khách hàng gửi POST /api/v1/bookings chặng Hà Nội -&gt; Vinh (Ga 0 -&gt; 2) ghế 12 kèm Bearer Token và Idempotency-Key.
+                            Khách hàng gửi POST /api/v1/bookings chặng Hà Nội -&gt; Ninh Bình (Ga 0 -&gt; 2) ghế 12.
                         </div>
                         <div class="flex items-center justify-between text-[10px] font-mono text-slate-500">
-                            <span>PAYLOAD ĐANG TRUYỀN:</span>
-                            <span id="pipelineTracePacketType" class="text-cyan-400 font-bold">HTTP REQUEST PAYLOAD (CLIENT -&gt; GATEWAY)</span>
+                            <span>DỮ LIỆU ĐANG TRUYỀN:</span>
+                            <span id="pipelineTracePacketType" class="text-cyan-400 font-bold">HTTP REQUEST BODY</span>
                         </div>
                         <pre id="pipelineTracePacketData" class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-[11px] font-mono text-slate-300 overflow-y-auto max-h-[150px] leading-relaxed">POST /api/v1/bookings HTTP/1.1
 Host: localhost:5000
@@ -1070,26 +847,25 @@ Content-Type: application/json
         </div>
     </section>
 
-    <!-- Live API Console -->
-    <section id="live-console" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <!-- SECTION 6: LIVE API TERMINAL CONSOLE -->
+    <section id="live-console" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div class="reveal">
-            <div class="text-xs font-mono text-cyan-400 uppercase tracking-wider">TƯƠNG TÁC THỜI GIAN THỰC</div>
-            <h2 class="text-2xl sm:text-3xl font-bold text-slate-100 mt-1">Live API Terminal Console</h2>
-            <p class="text-sm text-slate-400 mt-2 max-w-2xl">
-                Gửi yêu cầu HTTP thực tế trực tiếp từ trình duyệt vào các endpoint của Backend Express đang chạy trên máy chủ.
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-100">6. Thử Nghiệm API Trực Tiếp</h2>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl">
+                Bấm nút bên dưới để gửi request thực tế lên máy chủ backend và xem kết quả trả về.
             </p>
         </div>
 
-        <div class="mt-8 p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur reveal">
+        <div class="mt-5 p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur reveal">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <div class="lg:col-span-5 space-y-4 font-mono text-xs">
                     <div>
-                        <label for="apiConsoleEndpoint" class="block text-slate-400 mb-1.5 uppercase font-semibold">Endpoint dịch vụ</label>
+                        <label for="apiConsoleEndpoint" class="block text-slate-400 mb-1.5 uppercase font-semibold">Chọn API muốn thử</label>
                         <select id="apiConsoleEndpoint" onchange="handleApiConsoleEndpointChange()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200">
-                            <option value="/health/live">GET /health/live (Kiểm tra trạng thái máy chủ)</option>
-                            <option value="/api/v1/trips/SE1-2026/seats?from=0&to=2" selected>GET /api/v1/trips/SE1-2026/seats?from=0&to=2 (Tra cứu ghế)</option>
-                            <option value="/api/v1/auth/login">POST /api/v1/auth/login (Đăng nhập hệ thống)</option>
-                            <option value="/api/v1/bookings">POST /api/v1/bookings (Đặt ghế)</option>
+                            <option value="/health/live">GET /health/live (Kiểm tra máy chủ sống)</option>
+                            <option value="/api/v1/trips/SE1-2026/seats?from=0&to=2" selected>GET /api/v1/trips/SE1-2026/seats?from=0&to=2 (Tra cứu ghế trống)</option>
+                            <option value="/api/v1/auth/login">POST /api/v1/auth/login (Đăng nhập lấy Token)</option>
+                            <option value="/api/v1/bookings">POST /api/v1/bookings (Đặt vé tàu)</option>
                         </select>
                     </div>
 
@@ -1099,148 +875,118 @@ Content-Type: application/json
                     </div>
 
                     <div id="apiConsoleBodyContainer" style="display: none;">
-                        <label for="apiConsoleRequestBody" class="block text-slate-400 mb-1.5 uppercase font-semibold">JSON Request Body</label>
+                        <label for="apiConsoleRequestBody" class="block text-slate-400 mb-1.5 uppercase font-semibold">Dữ liệu gửi lên (JSON Body)</label>
                         <textarea id="apiConsoleRequestBody" rows="6" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-300 font-mono text-xs focus:outline-none focus:border-cyan-500"></textarea>
                     </div>
 
                     <button type="button" 
                             id="apiConsoleSendBtn" 
                             onclick="sendLiveApiRequest()"
-                            class="w-full py-2.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold font-sans text-sm transition">
-                        Gửi Yêu Cầu Thực Tế (Dispatch HTTP Request)
+                            class="w-full py-2.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition">
+                        Gửi Yêu Cầu (Dispatch Request)
                     </button>
                 </div>
 
                 <div class="lg:col-span-7">
                     <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-xs font-mono">
                         <div class="flex items-center gap-2">
-                            <span class="text-slate-400">TRẠNG THÁI:</span>
-                            <span id="apiConsoleStatusCode" class="px-2 py-0.5 rounded bg-slate-800 text-slate-400">READY</span>
+                            <span class="text-slate-400">MÃ PHẢN HỒI:</span>
+                            <span id="apiConsoleStatusCode" class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-bold">READY</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-slate-400">ĐỘ TRỄ:</span>
+                            <span class="text-slate-400">THỜI GIAN:</span>
                             <span id="apiConsoleLatency" class="text-cyan-400 font-bold">-- ms</span>
                         </div>
                     </div>
 
-                    <pre id="apiConsoleResponseOutput" class="h-64 p-4 rounded-lg bg-slate-950 border border-slate-800 overflow-auto font-mono text-xs text-slate-300 leading-relaxed">// Nhấn "Gửi Yêu Cầu Thực Tế" để nhận phản hồi từ Backend...</pre>
+                    <pre id="apiConsoleResponseOutput" class="h-60 p-4 rounded-lg bg-slate-950 border border-slate-800 overflow-auto font-mono text-xs text-slate-300 leading-relaxed">// Nhấn "Gửi Yêu Cầu" để nhận dữ liệu từ Backend...</pre>
                 </div>
             </div>
         </div>
     </section>
 
-        <!-- Roadmap -->
-    <section id="roadmap" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <!-- SECTION 6: ĐỊNH HƯỚNG PHÁT TRIỂN PHA 2 -->
+    <section id="roadmap" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div class="reveal">
-            <div class="text-xs font-mono text-cyan-400 uppercase tracking-wider">KẾ HOẠCH PHÁT TRIỂN // DÀNH CHO NHÓM TIẾP THEO</div>
-            <h2 class="text-2xl sm:text-3xl font-bold text-slate-100 mt-1">Định Hướng Nâng Cấp & Hoàn Thiện Đồ Án</h2>
-            <p class="text-sm text-slate-400 mt-2 max-w-3xl">
-                Tổng hợp các hướng mở rộng thực tế, phù hợp với năng lực và mục tiêu học tập của sinh viên để tiếp tục phát triển đồ án ở các giai đoạn sau.
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-100">6. Bốn Định Hướng Phát Triển Cho Pha Sau (Phase 2)</h2>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl">
+                Các đề xuất thực tế để nhóm tiếp theo tiếp quản và mở rộng dự án.
             </p>
         </div>
 
-        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 reveal">
-            <!-- Đề xuất 1: Tuyến đường dài hơn -->
-            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur flex flex-col justify-between">
+        <div class="mt-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 reveal">
+            <!-- 01: Tuyến dài hơn -->
+            <div class="p-4 rounded-xl border border-slate-800 bg-slate-900/40 backdrop-blur flex flex-col justify-between">
                 <div>
-                    <div class="text-xs font-mono text-cyan-400 font-bold mb-2">ĐỀ XUẤT 01 // THUẬT TOÁN</div>
-                    <h3 class="text-base font-bold text-slate-100">Mở Rộng Tuyến Tàu Dài (Dynamic Bitmask)</h3>
+                    <div class="text-[11px] font-mono text-cyan-400 font-bold mb-1">HƯỚNG 1 // THUẬT TOÁN</div>
+                    <h3 class="text-sm font-bold text-slate-100">Mở Rộng Tuyến Dài Hơn (BigInt)</h3>
                     <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                        Hiện tại hệ thống đang mô phỏng tuyến 5 ga cố định. Nhóm tiếp theo có thể mở rộng lên toàn tuyến thực tế từ 20 đến 30 ga (như tuyến Hà Nội - Sài Gòn).
+                        Hiện tại hệ thống demo tuyến 5 ga (4 bit). Nhóm sau có thể mở rộng lên tuyến Bắc - Nam từ 20 đến 30 ga bằng kiểu <code class="text-cyan-300 font-mono">BigInt</code> của JavaScript (<code class="text-cyan-300 font-mono">1n &lt;&lt; n</code>). Thuật toán Bitmask vẫn giữ nguyên logic và kiểm tra trùng chặng tức thì.
                     </p>
-                    <div class="mt-4 p-3 rounded bg-slate-950 border border-slate-800/80 text-[11px] font-mono text-slate-300">
-                        <strong class="text-emerald-400">Cách triển khai:</strong> Sử dụng kiểu dữ liệu <code class="text-cyan-300">BigInt</code> có sẵn của JavaScript (<code class="text-cyan-300">1n &lt;&lt; n</code>) thay cho số nguyên 32-bit. Logic thuật toán Bitmask vẫn giữ nguyên và tốc độ kiểm tra trùng chặng vẫn tức thì.
-                    </div>
                 </div>
-                <div class="mt-4 pt-3 border-t border-slate-800/80 text-[10px] font-mono text-slate-500">
-                    MỤC TIÊU: HỖ TRỢ TUYẾN TÀU THỰC TẾ
+                <div class="mt-3 pt-2.5 border-t border-slate-800 text-[10px] font-mono text-slate-500">
+                    MỤC TIÊU: HỖ TRỢ TUYẾN 20-30 GA
                 </div>
             </div>
 
-            <!-- Đề xuất 2: Giữ chỗ tạm thời -->
-            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur flex flex-col justify-between">
+            <!-- 02: Giữ chỗ tạm thời -->
+            <div class="p-4 rounded-xl border border-slate-800 bg-slate-900/40 backdrop-blur flex flex-col justify-between">
                 <div>
-                    <div class="text-xs font-mono text-cyan-400 font-bold mb-2">ĐỀ XUẤT 02 // TRẢI NGHIỆM NGƯỜI DÙNG</div>
-                    <h3 class="text-base font-bold text-slate-100">Giữ Chỗ Tạm Thời Khi Thanh Toán (Holding 10 Phút)</h3>
+                    <div class="text-[11px] font-mono text-cyan-400 font-bold mb-1">HƯỚNG 2 // TRẢI NGHIỆM</div>
+                    <h3 class="text-sm font-bold text-slate-100">Giữ Chỗ Tạm Thời Khi Thanh Toán</h3>
                     <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                        Khi người dùng chọn ghế, hệ thống tạm giữ ghế trong 10 phút để khách nhập thông tin và thanh toán. Nếu quá 10 phút chưa thanh toán thì tự động nhả ghế lại.
+                        Khi khách chọn ghế, tạm giữ chỗ trong 10 phút để điền thông tin và thanh toán. Sử dụng Redis TTL (thời gian sống 10 phút) để tự động nhả ghế nếu khách không thanh toán, tránh hiện tượng giữ ghế ảo.
                     </p>
-                    <div class="mt-4 p-3 rounded bg-slate-950 border border-slate-800/80 text-[11px] font-mono text-slate-300">
-                        <strong class="text-emerald-400">Cách triển khai:</strong> Lưu thông tin ghế đang giữ vào Redis kèm thời gian hết hạn (TTL = 10 phút). Khi hết giờ Redis sẽ tự xóa khóa, giải phóng ghế mà không cần viết cron job phức tạp.
-                    </div>
                 </div>
-                <div class="mt-4 pt-3 border-t border-slate-800/80 text-[10px] font-mono text-slate-500">
+                <div class="mt-3 pt-2.5 border-t border-slate-800 text-[10px] font-mono text-slate-500">
                     MỤC TIÊU: TRÁNH GIỮ GHẾ ẢO
                 </div>
             </div>
 
-            <!-- Đề xuất 3: Đồng bộ sơ đồ ghế thời gian thực -->
-            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur flex flex-col justify-between">
+            <!-- 03: Đồng bộ thời gian thực -->
+            <div class="p-4 rounded-xl border border-slate-800 bg-slate-900/40 backdrop-blur flex flex-col justify-between">
                 <div>
-                    <div class="text-xs font-mono text-cyan-400 font-bold mb-2">ĐỀ XUẤT 03 // GIAO DIỆN & TƯƠNG TÁC</div>
-                    <h3 class="text-base font-bold text-slate-100">Cập Nhật Ghế Thời Gian Thực (WebSocket / SSE)</h3>
+                    <div class="text-[11px] font-mono text-cyan-400 font-bold mb-1">HƯỚNG 3 // THỜI GIAN THỰC</div>
+                    <h3 class="text-sm font-bold text-slate-100">Đồng Bộ Ghế Trống Thời Gian Thực</h3>
                     <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                        Khi có ai đó đặt ghế thành công, sơ đồ ghế trên màn hình của tất cả những người khác đang cùng xem chuyến tàu sẽ tự động đổi màu mà không cần bấm F5.
+                        Sử dụng WebSocket hoặc Server-Sent Events (SSE). Khi có ai đó đặt ghế thành công, sơ đồ ghế trên màn hình của tất cả các khách khác đang xem chuyến tàu sẽ tự động đổi màu mà không cần bấm F5 tải lại trang.
                     </p>
-                    <div class="mt-4 p-3 rounded bg-slate-950 border border-slate-800/80 text-[11px] font-mono text-slate-300">
-                        <strong class="text-emerald-400">Cách triển khai:</strong> Dùng Server-Sent Events (SSE) hoặc thư viện Socket.io. Server phát sự kiện khi có vé mới, trình duyệt nhận tín hiệu và cập nhật trực tiếp màu ghế trên giao diện.
-                    </div>
                 </div>
-                <div class="mt-4 pt-3 border-t border-slate-800/80 text-[10px] font-mono text-slate-500">
-                    MỤC TIÊU: ĐỒNG BỘ TRẠNG THÁI TỨC THÌ
+                <div class="mt-3 pt-2.5 border-t border-slate-800 text-[10px] font-mono text-slate-500">
+                    MỤC TIÊU: ĐỒNG BỘ TOÀN HỆ THỐNG
                 </div>
             </div>
 
-            <!-- Đề xuất 4: Quản lý vé và phân quyền -->
-            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur flex flex-col justify-between">
+            <!-- 04: Quản lý vé & Admin -->
+            <div class="p-4 rounded-xl border border-slate-800 bg-slate-900/40 backdrop-blur flex flex-col justify-between">
                 <div>
-                    <div class="text-xs font-mono text-cyan-400 font-bold mb-2">ĐỀ XUẤT 04 // TÍNH NĂNG ỨNG DỤNG</div>
-                    <h3 class="text-base font-bold text-slate-100">Quản Lý Vé Đã Đặt & Giao Diện Admin</h3>
+                    <div class="text-[11px] font-mono text-cyan-400 font-bold mb-1">HƯỚNG 4 // NGHIỆP VỤ</div>
+                    <h3 class="text-sm font-bold text-slate-100">Trang Quản Lý Vé &amp; Mã QR</h3>
                     <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                        Bổ sung trang xem lại lịch sử các vé đã mua (kèm mã QR để soát vé) và trang Admin quản lý danh sách chuyến tàu, theo dõi lượng ghế trống từng ngày.
+                        Bổ sung trang xem lại lịch sử các vé đã mua (kèm mã QR soát vé để lưu vào điện thoại) và trang Quản trị viên để theo dõi lượng vé bán ra, tỷ lệ lấp đầy ghế theo từng chuyến tàu.
                     </p>
-                    <div class="mt-4 p-3 rounded bg-slate-950 border border-slate-800/80 text-[11px] font-mono text-slate-300">
-                        <strong class="text-emerald-400">Cách triển khai:</strong> Phân quyền tài khoản cơ bản (Khách hàng / Quản trị viên) bằng JWT, sinh mã QR chứa thông tin mã vé để người dùng lưu vào điện thoại.
-                    </div>
                 </div>
-                <div class="mt-4 pt-3 border-t border-slate-800/80 text-[10px] font-mono text-slate-500">
-                    MỤC TIÊU: HOÀN THIỆN NGHIỆP VỤ ĐỒ ÁN
-                </div>
-            </div>
-
-            <!-- Đề xuất 5: Bộ nhớ đệm dự phòng -->
-            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur flex flex-col justify-between">
-                <div>
-                    <div class="text-xs font-mono text-cyan-400 font-bold mb-2">ĐỀ XUẤT 05 // ĐỘ ỔN ĐỊNH</div>
-                    <h3 class="text-base font-bold text-slate-100">Bộ Nhớ Đệm Dự Phòng (Local Cache Fallback)</h3>
-                    <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                        Giúp ứng dụng vẫn hiển thị được lịch trình chuyến tàu và thông tin ghế cho người dùng xem ngay cả khi Redis gặp sự cố hoặc máy chủ bị mất mạng tạm thời.
-                    </p>
-                    <div class="mt-4 p-3 rounded bg-slate-950 border border-slate-800/80 text-[11px] font-mono text-slate-300">
-                        <strong class="text-emerald-400">Cách triển khai:</strong> Lưu sẵn bản sao dữ liệu chuyến tàu vào bộ nhớ RAM máy chủ (sử dụng Map hoặc thư viện node-cache). Nếu không kết nối được Redis, hệ thống tự động lấy từ RAM ra hiển thị.
-                    </div>
-                </div>
-                <div class="mt-4 pt-3 border-t border-slate-800/80 text-[10px] font-mono text-slate-500">
-                    MỤC TIÊU: ĐẢM BẢO WEBSITE KHÔNG BỊ TREO
+                <div class="mt-3 pt-2.5 border-t border-slate-800 text-[10px] font-mono text-slate-500">
+                    MỤC TIÊU: HOÀN THIỆN NGHIỆP VỤ
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="border-t border-slate-800/80 bg-slate-950 py-12 px-4 sm:px-6 lg:px-8 text-center text-xs font-mono text-slate-500">
+    <footer class="border-t border-slate-800 bg-slate-950 py-8 px-4 sm:px-6 lg:px-8 text-center text-xs font-mono text-slate-500">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
-                <span class="text-slate-300 font-bold">HỆ THỐNG ĐẶT VÉ TÀU HỎA // ĐỒ ÁN KIẾN TRÚC MÁY TÍNH</span>
+                <span class="text-slate-300 font-bold">DEMO THUẬT TOÁN BITMASK // ĐỒ ÁN KIẾN TRÚC MÁY TÍNH</span>
             </div>
             <div>
-                KIẾN TRÚC: HEXAGONAL (PORTS & ADAPTERS) | CƠ SỞ DỮ LIỆU: MONGODB + REDIS | THUẬT TOÁN: BITMASK
+                Backend: Node.js / Express | Database: MongoDB &amp; Redis | Frontend: HTML / Tailwind
             </div>
         </div>
     </footer>
 
-    <!-- Các module JavaScript chuyên sâu -->
+    <!-- Các module JavaScript -->
     <script src="./js/bitmask.js"></script>
     <script src="./js/seatmap.js"></script>
     <script src="./js/architecture.js"></script>
