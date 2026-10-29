@@ -15,8 +15,10 @@ Dự án được tổ chức thành các module và thành phần dùng chung n
 - [Cấu hình](#cấu-hình)
 - [Bắt đầu](#bắt-đầu)
 - [Triển khai với Docker](#triển-khai-với-docker)
+- [Triển khai trực tuyến (Demo)](#triển-khai-trực-tuyến-demo)
 - [Tài liệu API](#tài-liệu-api)
 - [Kiểm tra sức khỏe dịch vụ](#kiểm-tra-sức-khỏe-dịch-vụ)
+- [Kiểm thử tải (Load Test)](#kiểm-thử-tải-load-test)
 - [Phát triển](#phát-triển)
 - [Xử lý sự cố](#xử-lý-sự-cố)
 - [Giấy phép](#giấy-phép)
@@ -38,6 +40,8 @@ Dự án bao gồm:
 - Tài liệu API thông qua Swagger/OpenAPI.
 - Các endpoint health-check để giám sát dịch vụ.
 - Hỗ trợ Docker để triển khai theo container.
+- Bản triển khai trực tuyến trên Vercel và Render để dùng thử.
+- Kết quả kiểm thử tải được chạy trên Kaggle.
 
 > Lưu ý: Các chức năng nghiệp vụ và endpoint API cụ thể cần được đối chiếu với mã nguồn hiện tại và đặc tả API.
 
@@ -56,6 +60,7 @@ Dự án bao gồm:
 | Swagger / OpenAPI | Tài liệu API |
 | Docker | Đóng gói ứng dụng bằng container |
 | Docker Compose | Quản lý vòng đời container và cấu hình runtime |
+| Vercel / Render | Nền tảng triển khai trực tuyến |
 | ESLint | Kiểm tra chất lượng mã nguồn |
 
 ---
@@ -95,22 +100,22 @@ train-booking-backend/
 │   ├── modules/         # Các module chức năng và nghiệp vụ
 │   ├── public/          # Tài nguyên tĩnh do ứng dụng phục vụ
 │   ├── shared/          # Các thành phần dùng chung
-│   ├── app.js            # Cấu hình ứng dụng Express
-│   └── server.js         # Điểm khởi chạy server
+│   ├── app.js           # Cấu hình ứng dụng Express
+│   └── server.js        # Điểm khởi chạy server
 ├── scripts/
-│   └── seed.js           # Script nạp dữ liệu mẫu
-├── documents/            # Tài liệu dự án
-├── docker/               # Tài nguyên liên quan đến Docker
-├── postman/              # Tài nguyên kiểm thử API
-├── .env.example          # Ví dụ cấu hình môi trường
-├── .dockerignore         # Các tệp bị loại khỏi Docker build context
-├── .gitignore             # Quy tắc bỏ qua của Git
-├── Dockerfile             # Định nghĩa Docker image
-├── compose.yaml           # Cấu hình Docker Compose
-├── package.json           # Dependencies và npm scripts
-├── package-lock.json      # Phiên bản dependencies đã khóa
-├── openapi.json           # Đặc tả OpenAPI dạng JSON
-└── swagger.yaml           # Đặc tả Swagger/OpenAPI
+│   └── seed.js          # Script nạp dữ liệu mẫu
+├── documents/           # Tài liệu dự án
+├── docker/              # Tài nguyên liên quan đến Docker
+├── postman/             # Tài nguyên kiểm thử API
+├── .env.example         # Ví dụ cấu hình môi trường
+├── .dockerignore        # Các tệp bị loại khỏi Docker build context
+├── .gitignore           # Quy tắc bỏ qua của Git
+├── Dockerfile           # Định nghĩa Docker image
+├── compose.yaml         # Cấu hình Docker Compose
+├── package.json         # Dependencies và npm scripts
+├── package-lock.json    # Phiên bản dependencies đã khóa
+├── openapi.json         # Đặc tả OpenAPI dạng JSON
+└── swagger.yaml         # Đặc tả Swagger/OpenAPI
 ```
 
 Một số tệp, bao gồm cấu hình Docker, có thể khác nhau tùy theo nhánh hiện tại hoặc thiết lập triển khai.
@@ -254,7 +259,7 @@ docker run -d \
   --restart unless-stopped \
   -p 5000:5000 \
   --env-file .env \
-  YOUR_USERNAME/train-booking-backend:1.0
+  thanhtran22096/train-booking-backend:1.0
 ```
 
 API sẽ khả dụng tại `http://localhost:5000`.
@@ -322,6 +327,27 @@ docker compose up -d --build
 - MongoDB Atlas và dịch vụ Redis bên ngoài có thể nằm ngoài Docker.
 - Đảm bảo `.env` không bị sao chép vào Docker image.
 - Docker image của ứng dụng và cơ sở dữ liệu là các tài nguyên riêng biệt; việc build lại image không tự động cấp phát các dịch vụ cơ sở dữ liệu bên ngoài.
+
+---
+
+## Triển khai trực tuyến (Demo)
+
+Backend đã được triển khai trên hai nền tảng để bạn có thể truy cập và thử nghiệm trực tiếp mà không cần cài đặt gì:
+
+| Nền tảng | Liên kết | Ghi chú |
+|---|---|---|
+| **Vercel** | [https://train-booking-backend-public.vercel.app](https://train-booking-backend-public.vercel.app) | Giao diện demo và Swagger UI tại `/api-docs` |
+| **Render** | [https://train-booking-backend-3ri7.onrender.com](https://train-booking-backend-3ri7.onrender.com) | Chạy trên Free Tier |
+
+**Lưu ý khi dùng bản demo:**
+
+- Render Free Tier tự động tạm ngưng (sleep) khi không có truy cập. Request đầu tiên có thể mất khoảng **30–60 giây** để đánh thức dịch vụ (đo thực tế: ~39 giây). Các request sau đó sẽ phản hồi bình thường.
+- Đây là môi trường demo với tài nguyên giới hạn, không phù hợp cho tải production.
+- Có thể kiểm tra nhanh bằng:
+
+```bash
+curl https://train-booking-backend-3ri7.onrender.com/health/live
+```
 
 ---
 
@@ -421,6 +447,68 @@ Phản hồi liveness thành công không nhất thiết có nghĩa là mọi de
 
 ---
 
+## Kiểm thử tải (Load Test)
+
+Hiệu năng của backend được đánh giá bằng bài test tải tăng dần (step load) chạy trên Kaggle, gọi vào bản triển khai trên Render.
+
+### Môi trường test
+
+| Thông số | Giá trị |
+|---|---|
+| Thời điểm chạy | 2026-10-27 06:59 |
+| Commit | `97d3ae7` |
+| Server | Render Free Tier |
+| Client | Kaggle CPU |
+| Thời gian wake-up (cold start) | 39,3 giây |
+| Endpoint | `GET /api/v1/trips/SE1-2026/seats?from=0&to=2` |
+| Kịch bản | 22 bước tăng tải, mỗi bước 4.000 request |
+
+### Phase 1: `GET /seats`
+
+| Users | req/s | p50 | p95 | p99 | max | Lỗi | Trạng thái |
+|---:|---:|---:|---:|---:|---:|---:|---|
+| 50 | 210 | 89 ms | 355 ms | 482 ms | 646 ms | 0,0% | OK |
+| 100 | 231 | 184 ms | 507 ms | 675 ms | 706 ms | 0,0% | OK |
+| 150 | 236 | 266 ms | 821 ms | 1468 ms | 2123 ms | 0,0% | OK |
+| 200 | 304 | 280 ms | 694 ms | 978 ms | 1086 ms | 0,0% | OK |
+| 300 | 326 | 377 ms | 886 ms | 1074 ms | 1340 ms | 0,0% | OK |
+| 400 | 334 | 559 ms | 1242 ms | 1388 ms | 1461 ms | 0,0% | OK |
+| 500 | 331 | 665 ms | 1466 ms | 1548 ms | 1704 ms | 0,0% | OK |
+| 600 | 337 | 913 ms | 1641 ms | 1869 ms | 1902 ms | 0,0% | OK |
+| 700 | 330 | 946 ms | 2001 ms | 2146 ms | 2340 ms | 0,0% | OK |
+| 800 | 340 | 1032 ms | 2158 ms | 2430 ms | 2534 ms | 0,0% | OK |
+| 900 | 345 | 1161 ms | 2409 ms | 2512 ms | 2626 ms | 0,0% | OK |
+| 1000 | 306 | 1440 ms | 3078 ms | 4528 ms | 4738 ms | 0,0% | OK |
+| 1200 | 239 | 1488 ms | 3199 ms | 5082 ms | 6309 ms | 0,0% | Breaking point |
+| 1400 | 286 | 1478 ms | 3547 ms | 6284 ms | 6586 ms | 0,0% | Slow |
+| 1600 | 169 | 1537 ms | 4524 ms | 4803 ms | 15099 ms | 0,0% | OK |
+| 1800 | 261 | 3162 ms | 6236 ms | 6774 ms | 6809 ms | 0,0% | Slow |
+| 2000 | 173 | 1889 ms | 5051 ms | 5609 ms | 15623 ms | 0,0% | Slow |
+| 2200 | 147 | 8837 ms | 15842 ms | 15947 ms | 15980 ms | 10,2% | Slow |
+| 2400 | 126 | 3444 ms | 15601 ms | 15627 ms | 15801 ms | 8,2% | Slow |
+| 2600 | 178 | 9916 ms | 14050 ms | 15158 ms | 15814 ms | 0,1% | Slow |
+| 2800 | 127 | 2934 ms | 8297 ms | 8710 ms | 15957 ms | 0,1% | Slow |
+| 3000 | 193 | 13951 ms | 15897 ms | 15960 ms | 15985 ms | 28,8% | Slow |
+
+### Tổng kết
+
+| Chỉ số | Kết quả |
+|---|---|
+| Throughput tối đa | **345 req/s** (tại 900 users) |
+| Breaking point | **1.200 users đồng thời** |
+| Max stable users (theo công cụ test) | 1.600 users |
+
+> **Lưu ý:** Chỉ số "Max stable users" do công cụ test tự phân loại dựa trên ngưỡng p99. Tại 1.600 users, p99 là 4.803 ms nên được gắn nhãn "OK", nhưng p95 = 4.524 ms và max = 15.099 ms cho thấy hệ thống thực tế đã quá tải. Ngưỡng hoạt động ổn định thực tế nên được hiểu là khoảng **900–1.000 users**.
+
+### Nhận xét
+
+- Từ 50 đến 900 users, hệ thống hoạt động ổn định với 0% lỗi. Throughput tăng dần rồi bão hòa quanh **330–345 req/s**; sau mức này, thêm user chỉ làm tăng độ trễ.
+- Từ 1.000 users trở lên, độ trễ p99 vượt 4 giây và throughput giảm.
+- Từ khoảng 2.200 users, request bắt đầu timeout (~15 giây) và tỷ lệ lỗi tăng, lên tới 28,8% tại 3.000 users.
+- Kết quả được đo trên Render Free Tier (CPU và RAM giới hạn) với client là Kaggle CPU, nên các con số tuyệt đối chỉ mang tính tham khảo. Hiệu năng trên hạ tầng mạnh hơn sẽ khác.
+
+---
+
 ## Phát triển
 
 ### Các npm script khả dụng
@@ -496,6 +584,10 @@ Backend vẫn lắng nghe ở cổng `5000` bên trong container, trong khi clie
 ### Swagger UI không tải được
 
 Xác minh rằng `swagger.yaml` có mặt tại đường dẫn mà ứng dụng mong đợi và server đã khởi động thành công.
+
+### Bản demo trên Render phản hồi chậm ở request đầu tiên
+
+Render Free Tier tự ngưng dịch vụ khi không có truy cập. Hãy chờ khoảng 30–60 giây cho request đầu tiên, sau đó thử lại.
 
 ---
 
